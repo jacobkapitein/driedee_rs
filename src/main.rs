@@ -6,7 +6,7 @@ use std::time::Duration;
 mod core;
 
 fn main() -> Result<(), String> {
-    let mut engine: Engine = Engine::new("3D Engine", 640, 340);
+    let mut engine: Engine = Engine::new("3D Engine", 1280, 720);
 
     // Create the SDL event pump to handle events
     let mut event_pump = engine
