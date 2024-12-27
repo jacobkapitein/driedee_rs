@@ -47,7 +47,7 @@ impl Engine {
             size_x,
             size_y,
             projection_matrix,
-            mesh_cube: Mesh::from_cube(),
+            mesh_cube: Mesh::from_cilinder(12),
             theta: 0.0,
         }
     }
@@ -55,6 +55,7 @@ impl Engine {
     pub fn on_user_update(&mut self, elapsed_time: f32) -> bool {
         self.canvas.set_draw_color(Color::RGB(0, 0, 0));
         self.canvas.clear();
+        self.canvas.set_draw_color(Color::RGB(255, 255, 255));
 
         let mut mat_rot_z = Matrix4X4::new();
         let mut mat_rot_x = Matrix4X4::new();
@@ -74,15 +75,6 @@ impl Engine {
         mat_rot_x.matrix[2][2] = (self.theta * 0.5).cos();
         mat_rot_x.matrix[3][3] = 1.0;
 
-        let colors = [
-            Color::RGB(255, 0, 0),
-            Color::RGB(0, 255, 0),
-            Color::RGB(0, 0, 255),
-            Color::RGB(255, 255, 0),
-            Color::RGB(0, 255, 255),
-            Color::RGB(255, 0, 255),
-        ];
-        let mut i = 0;
         // Now, draw the triangles
         for triangle in &self.mesh_cube.triangles {
             let mut projected_triangle = Triangle::new();
@@ -156,7 +148,6 @@ impl Engine {
             projected_triangle.vector3d[2].x *= 0.5 * self.size_x as f32;
             projected_triangle.vector3d[2].y *= 0.5 * self.size_y as f32;
 
-            self.canvas.set_draw_color(colors[i % 3]);
             self.canvas
                 .draw_fline(
                     FPoint::new(
@@ -193,11 +184,6 @@ impl Engine {
                     ),
                 )
                 .expect("Error drawing line");
-            // Colouring logic
-            i += 1;
-            if i >= 18 {
-                i = 0;
-            }
         }
 
         // Finally, show the buffer
