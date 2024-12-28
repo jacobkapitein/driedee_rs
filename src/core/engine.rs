@@ -41,15 +41,9 @@ impl Engine {
         let far_plane: f32 = 1000.0;
         let fov: f32 = 90.0;
         let aspect_ratio: f32 = size_y as f32 / size_x as f32;
-        let fov_rad = 1.0 / (fov * 0.5 / 180.0 * 3.14159).tan();
 
-        let mut projection_matrix = Matrix4X4::new();
-        projection_matrix.matrix[0][0] = aspect_ratio * fov_rad;
-        projection_matrix.matrix[1][1] = fov_rad;
-        projection_matrix.matrix[2][2] = far_plane / (far_plane - near_plane);
-        projection_matrix.matrix[3][2] = (-far_plane * near_plane) / (far_plane - near_plane);
-        projection_matrix.matrix[2][3] = 1.0;
-        projection_matrix.matrix[3][3] = 0.0;
+        let projection_matrix =
+            Matrix4X4::from_projection(fov, aspect_ratio, near_plane, far_plane);
 
         Engine {
             sdl_context,
@@ -72,19 +66,19 @@ impl Engine {
         let mut mat_rot_x = Matrix4X4::new();
         self.theta += 1.0 * elapsed_time;
 
-        mat_rot_z.matrix[0][0] = self.theta.cos();
-        mat_rot_z.matrix[0][1] = self.theta.sin();
-        mat_rot_z.matrix[1][0] = -self.theta.sin();
-        mat_rot_z.matrix[1][1] = self.theta.cos();
-        mat_rot_z.matrix[2][2] = 1.0;
-        mat_rot_z.matrix[3][3] = 1.0;
+        mat_rot_z.content[0][0] = self.theta.cos();
+        mat_rot_z.content[0][1] = self.theta.sin();
+        mat_rot_z.content[1][0] = -self.theta.sin();
+        mat_rot_z.content[1][1] = self.theta.cos();
+        mat_rot_z.content[2][2] = 1.0;
+        mat_rot_z.content[3][3] = 1.0;
 
-        mat_rot_x.matrix[0][0] = 1.0;
-        mat_rot_x.matrix[1][1] = (self.theta * 0.5).cos();
-        mat_rot_x.matrix[1][2] = (self.theta * 0.5).sin();
-        mat_rot_x.matrix[2][1] = -(self.theta * 0.5).sin();
-        mat_rot_x.matrix[2][2] = (self.theta * 0.5).cos();
-        mat_rot_x.matrix[3][3] = 1.0;
+        mat_rot_x.content[0][0] = 1.0;
+        mat_rot_x.content[1][1] = (self.theta * 0.5).cos();
+        mat_rot_x.content[1][2] = (self.theta * 0.5).sin();
+        mat_rot_x.content[2][1] = -(self.theta * 0.5).sin();
+        mat_rot_x.content[2][2] = (self.theta * 0.5).cos();
+        mat_rot_x.content[3][3] = 1.0;
 
         let mut triangles_to_draw: Vec<Triangle> = Vec::new();
 
@@ -345,22 +339,22 @@ impl Engine {
         output: &mut Vector3D,
         matrix: &Matrix4X4,
     ) {
-        output.x = input.x * matrix.matrix[0][0]
-            + input.y * matrix.matrix[1][0]
-            + input.z * matrix.matrix[2][0]
-            + matrix.matrix[3][0];
-        output.y = input.x * matrix.matrix[0][1]
-            + input.y * matrix.matrix[1][1]
-            + input.z * matrix.matrix[2][1]
-            + matrix.matrix[3][1];
-        output.z = input.x * matrix.matrix[0][2]
-            + input.y * matrix.matrix[1][2]
-            + input.z * matrix.matrix[2][2]
-            + matrix.matrix[3][2];
-        let w: f32 = input.x * matrix.matrix[0][3]
-            + input.y * matrix.matrix[1][3]
-            + input.z * matrix.matrix[2][3]
-            + matrix.matrix[3][3];
+        output.x = input.x * matrix.content[0][0]
+            + input.y * matrix.content[1][0]
+            + input.z * matrix.content[2][0]
+            + matrix.content[3][0];
+        output.y = input.x * matrix.content[0][1]
+            + input.y * matrix.content[1][1]
+            + input.z * matrix.content[2][1]
+            + matrix.content[3][1];
+        output.z = input.x * matrix.content[0][2]
+            + input.y * matrix.content[1][2]
+            + input.z * matrix.content[2][2]
+            + matrix.content[3][2];
+        let w: f32 = input.x * matrix.content[0][3]
+            + input.y * matrix.content[1][3]
+            + input.z * matrix.content[2][3]
+            + matrix.content[3][3];
 
         if w != 0.0 {
             output.x /= w;
