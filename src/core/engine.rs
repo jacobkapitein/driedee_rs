@@ -162,6 +162,23 @@ impl Engine {
                 continue;
             }
 
+            // Calculate illumination
+            let mut light_direction = Vector3D::new();
+            light_direction.z = -1.0;
+            let light_normal_length = (light_direction.x * light_direction.x
+                + light_direction.y * light_direction.y
+                + light_direction.z * light_direction.z)
+                .sqrt();
+            light_direction.x /= light_normal_length;
+            light_direction.y /= light_normal_length;
+            light_direction.z /= light_normal_length;
+            let dot_product = normal.x * light_direction.x
+                + normal.y * light_direction.y
+                + normal.z * light_direction.z;
+
+            projected_triangle.base_color =
+                self.get_color(dot_product, translated_triangle.base_color);
+
             // Project triangles from 3D to 2D
             self.multiply_matrix_vector(
                 &translated_triangle.vector3d[0],
@@ -205,6 +222,18 @@ impl Engine {
         self.canvas.present();
 
         true
+    }
+
+    fn get_color(&self, lum: f32, base_color: Color) -> Color {
+        // Clamp luminance between 0.0 and 1.0
+        let luminance = lum.clamp(0.0, 1.0);
+
+        // Calculate the new color components
+        let new_r = (base_color.r as f32 * luminance) as u8;
+        let new_g = (base_color.g as f32 * luminance) as u8;
+        let new_b = (base_color.b as f32 * luminance) as u8;
+
+        Color::RGB(new_r, new_g, new_b)
     }
 
     pub fn draw_filled_triangle(&mut self, projected_triangle: &Triangle) {
@@ -273,7 +302,7 @@ impl Engine {
             x_right = x02;
         }
 
-        self.canvas.set_draw_color(Color::RGB(255, 255, 255));
+        self.canvas.set_draw_color(projected_triangle.base_color);
         for y in (ordered_points[0].y as i32)..(ordered_points[2].y as i32) {
             for x in ((x_left[y as usize - ordered_points[0].y as usize]) as i32)
                 ..((x_right[y as usize - ordered_points[0].y as usize]) as i32)
@@ -286,6 +315,7 @@ impl Engine {
     }
 
     pub fn draw_wireframe(&mut self, triangle: &Triangle) {
+        self.canvas.set_draw_color(Color::RGB(255, 0, 0));
         self.canvas
             .draw_fline(
                 FPoint::new(triangle.vector3d[0].x, triangle.vector3d[0].y),

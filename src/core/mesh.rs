@@ -8,240 +8,215 @@ impl Mesh {
     pub fn from_cube() -> Mesh {
         Mesh {
             triangles: vec![
-                // SOUTH
-                Triangle {
-                    vector3d: [
-                        Vector3D {
-                            x: 0.0,
-                            y: 0.0,
-                            z: 0.0,
-                        },
-                        Vector3D {
-                            x: 0.0,
-                            y: 1.0,
-                            z: 0.0,
-                        },
-                        Vector3D {
-                            x: 1.0,
-                            y: 1.0,
-                            z: 0.0,
-                        },
-                    ],
-                },
-                Triangle {
-                    vector3d: [
-                        Vector3D {
-                            x: 0.0,
-                            y: 0.0,
-                            z: 0.0,
-                        },
-                        Vector3D {
-                            x: 1.0,
-                            y: 1.0,
-                            z: 0.0,
-                        },
-                        Vector3D {
-                            x: 1.0,
-                            y: 0.0,
-                            z: 0.0,
-                        },
-                    ],
-                },
+                Triangle::new_from_vectors([
+                    Vector3D {
+                        x: 0.0,
+                        y: 0.0,
+                        z: 0.0,
+                    },
+                    Vector3D {
+                        x: 0.0,
+                        y: 1.0,
+                        z: 0.0,
+                    },
+                    Vector3D {
+                        x: 1.0,
+                        y: 1.0,
+                        z: 0.0,
+                    },
+                ]),
+                Triangle::new_from_vectors([
+                    Vector3D {
+                        x: 0.0,
+                        y: 0.0,
+                        z: 0.0,
+                    },
+                    Vector3D {
+                        x: 1.0,
+                        y: 1.0,
+                        z: 0.0,
+                    },
+                    Vector3D {
+                        x: 1.0,
+                        y: 0.0,
+                        z: 0.0,
+                    },
+                ]),
                 // NORTH
-                Triangle {
-                    vector3d: [
-                        Vector3D {
-                            x: 1.0,
-                            y: 0.0,
-                            z: 1.0,
-                        },
-                        Vector3D {
-                            x: 1.0,
-                            y: 1.0,
-                            z: 1.0,
-                        },
-                        Vector3D {
-                            x: 0.0,
-                            y: 1.0,
-                            z: 1.0,
-                        },
-                    ],
-                },
-                Triangle {
-                    vector3d: [
-                        Vector3D {
-                            x: 1.0,
-                            y: 0.0,
-                            z: 1.0,
-                        },
-                        Vector3D {
-                            x: 0.0,
-                            y: 1.0,
-                            z: 1.0,
-                        },
-                        Vector3D {
-                            x: 0.0,
-                            y: 0.0,
-                            z: 1.0,
-                        },
-                    ],
-                },
+                Triangle::new_from_vectors([
+                    Vector3D {
+                        x: 1.0,
+                        y: 0.0,
+                        z: 1.0,
+                    },
+                    Vector3D {
+                        x: 1.0,
+                        y: 1.0,
+                        z: 1.0,
+                    },
+                    Vector3D {
+                        x: 0.0,
+                        y: 1.0,
+                        z: 1.0,
+                    },
+                ]),
+                Triangle::new_from_vectors([
+                    Vector3D {
+                        x: 1.0,
+                        y: 0.0,
+                        z: 1.0,
+                    },
+                    Vector3D {
+                        x: 0.0,
+                        y: 1.0,
+                        z: 1.0,
+                    },
+                    Vector3D {
+                        x: 0.0,
+                        y: 0.0,
+                        z: 1.0,
+                    },
+                ]),
                 // EAST
-                Triangle {
-                    vector3d: [
-                        Vector3D {
-                            x: 1.0,
-                            y: 0.0,
-                            z: 0.0,
-                        },
-                        Vector3D {
-                            x: 1.0,
-                            y: 1.0,
-                            z: 0.0,
-                        },
-                        Vector3D {
-                            x: 1.0,
-                            y: 1.0,
-                            z: 1.0,
-                        },
-                    ],
-                },
-                Triangle {
-                    vector3d: [
-                        Vector3D {
-                            x: 1.0,
-                            y: 0.0,
-                            z: 0.0,
-                        },
-                        Vector3D {
-                            x: 1.0,
-                            y: 1.0,
-                            z: 1.0,
-                        },
-                        Vector3D {
-                            x: 1.0,
-                            y: 0.0,
-                            z: 1.0,
-                        },
-                    ],
-                },
+                Triangle::new_from_vectors([
+                    Vector3D {
+                        x: 1.0,
+                        y: 0.0,
+                        z: 0.0,
+                    },
+                    Vector3D {
+                        x: 1.0,
+                        y: 1.0,
+                        z: 0.0,
+                    },
+                    Vector3D {
+                        x: 1.0,
+                        y: 1.0,
+                        z: 1.0,
+                    },
+                ]),
+                Triangle::new_from_vectors([
+                    Vector3D {
+                        x: 1.0,
+                        y: 0.0,
+                        z: 0.0,
+                    },
+                    Vector3D {
+                        x: 1.0,
+                        y: 1.0,
+                        z: 1.0,
+                    },
+                    Vector3D {
+                        x: 1.0,
+                        y: 0.0,
+                        z: 1.0,
+                    },
+                ]),
                 // WEST
-                Triangle {
-                    vector3d: [
-                        Vector3D {
-                            x: 0.0,
-                            y: 0.0,
-                            z: 1.0,
-                        },
-                        Vector3D {
-                            x: 0.0,
-                            y: 1.0,
-                            z: 1.0,
-                        },
-                        Vector3D {
-                            x: 0.0,
-                            y: 1.0,
-                            z: 0.0,
-                        },
-                    ],
-                },
-                Triangle {
-                    vector3d: [
-                        Vector3D {
-                            x: 0.0,
-                            y: 0.0,
-                            z: 1.0,
-                        },
-                        Vector3D {
-                            x: 0.0,
-                            y: 1.0,
-                            z: 0.0,
-                        },
-                        Vector3D {
-                            x: 0.0,
-                            y: 0.0,
-                            z: 0.0,
-                        },
-                    ],
-                },
+                Triangle::new_from_vectors([
+                    Vector3D {
+                        x: 0.0,
+                        y: 0.0,
+                        z: 1.0,
+                    },
+                    Vector3D {
+                        x: 0.0,
+                        y: 1.0,
+                        z: 1.0,
+                    },
+                    Vector3D {
+                        x: 0.0,
+                        y: 1.0,
+                        z: 0.0,
+                    },
+                ]),
+                Triangle::new_from_vectors([
+                    Vector3D {
+                        x: 0.0,
+                        y: 0.0,
+                        z: 1.0,
+                    },
+                    Vector3D {
+                        x: 0.0,
+                        y: 1.0,
+                        z: 0.0,
+                    },
+                    Vector3D {
+                        x: 0.0,
+                        y: 0.0,
+                        z: 0.0,
+                    },
+                ]),
                 // TOP
-                Triangle {
-                    vector3d: [
-                        Vector3D {
-                            x: 0.0,
-                            y: 1.0,
-                            z: 0.0,
-                        },
-                        Vector3D {
-                            x: 0.0,
-                            y: 1.0,
-                            z: 1.0,
-                        },
-                        Vector3D {
-                            x: 1.0,
-                            y: 1.0,
-                            z: 1.0,
-                        },
-                    ],
-                },
-                Triangle {
-                    vector3d: [
-                        Vector3D {
-                            x: 0.0,
-                            y: 1.0,
-                            z: 0.0,
-                        },
-                        Vector3D {
-                            x: 1.0,
-                            y: 1.0,
-                            z: 1.0,
-                        },
-                        Vector3D {
-                            x: 1.0,
-                            y: 1.0,
-                            z: 0.0,
-                        },
-                    ],
-                },
+                Triangle::new_from_vectors([
+                    Vector3D {
+                        x: 0.0,
+                        y: 1.0,
+                        z: 0.0,
+                    },
+                    Vector3D {
+                        x: 0.0,
+                        y: 1.0,
+                        z: 1.0,
+                    },
+                    Vector3D {
+                        x: 1.0,
+                        y: 1.0,
+                        z: 1.0,
+                    },
+                ]),
+                Triangle::new_from_vectors([
+                    Vector3D {
+                        x: 0.0,
+                        y: 1.0,
+                        z: 0.0,
+                    },
+                    Vector3D {
+                        x: 1.0,
+                        y: 1.0,
+                        z: 1.0,
+                    },
+                    Vector3D {
+                        x: 1.0,
+                        y: 1.0,
+                        z: 0.0,
+                    },
+                ]),
                 // BOTTOM
-                Triangle {
-                    vector3d: [
-                        Vector3D {
-                            x: 1.0,
-                            y: 0.0,
-                            z: 1.0,
-                        },
-                        Vector3D {
-                            x: 0.0,
-                            y: 0.0,
-                            z: 1.0,
-                        },
-                        Vector3D {
-                            x: 0.0,
-                            y: 0.0,
-                            z: 0.0,
-                        },
-                    ],
-                },
-                Triangle {
-                    vector3d: [
-                        Vector3D {
-                            x: 1.0,
-                            y: 0.0,
-                            z: 1.0,
-                        },
-                        Vector3D {
-                            x: 0.0,
-                            y: 0.0,
-                            z: 0.0,
-                        },
-                        Vector3D {
-                            x: 1.0,
-                            y: 0.0,
-                            z: 0.0,
-                        },
-                    ],
-                },
+                Triangle::new_from_vectors([
+                    Vector3D {
+                        x: 1.0,
+                        y: 0.0,
+                        z: 1.0,
+                    },
+                    Vector3D {
+                        x: 0.0,
+                        y: 0.0,
+                        z: 1.0,
+                    },
+                    Vector3D {
+                        x: 0.0,
+                        y: 0.0,
+                        z: 0.0,
+                    },
+                ]),
+                Triangle::new_from_vectors([
+                    Vector3D {
+                        x: 1.0,
+                        y: 0.0,
+                        z: 1.0,
+                    },
+                    Vector3D {
+                        x: 0.0,
+                        y: 0.0,
+                        z: 0.0,
+                    },
+                    Vector3D {
+                        x: 1.0,
+                        y: 0.0,
+                        z: 0.0,
+                    },
+                ]),
             ],
         }
     }
@@ -250,125 +225,113 @@ impl Mesh {
         Mesh {
             triangles: vec![
                 // BASE (using two triangles to form a square base)
-                Triangle {
-                    vector3d: [
-                        Vector3D {
-                            x: 0.0,
-                            y: 0.0,
-                            z: 0.0,
-                        }, // Bottom-left of the base
-                        Vector3D {
-                            x: 0.0,
-                            y: 1.0,
-                            z: 0.0,
-                        }, // Top-left of the base
-                        Vector3D {
-                            x: 1.0,
-                            y: 0.0,
-                            z: 0.0,
-                        }, // Bottom-right of the base
-                    ],
-                },
-                Triangle {
-                    vector3d: [
-                        Vector3D {
-                            x: 0.0,
-                            y: 1.0,
-                            z: 0.0,
-                        }, // Top-left of the base
-                        Vector3D {
-                            x: 1.0,
-                            y: 1.0,
-                            z: 0.0,
-                        }, // Top-right of the base
-                        Vector3D {
-                            x: 1.0,
-                            y: 0.0,
-                            z: 0.0,
-                        }, // Bottom-right of the base
-                    ],
-                },
+                Triangle::new_from_vectors([
+                    Vector3D {
+                        x: 0.0,
+                        y: 0.0,
+                        z: 0.0,
+                    }, // Bottom-left of the base
+                    Vector3D {
+                        x: 0.0,
+                        y: 1.0,
+                        z: 0.0,
+                    }, // Top-left of the base
+                    Vector3D {
+                        x: 1.0,
+                        y: 0.0,
+                        z: 0.0,
+                    }, // Bottom-right of the base
+                ]),
+                Triangle::new_from_vectors([
+                    Vector3D {
+                        x: 0.0,
+                        y: 1.0,
+                        z: 0.0,
+                    }, // Top-left of the base
+                    Vector3D {
+                        x: 1.0,
+                        y: 1.0,
+                        z: 0.0,
+                    }, // Top-right of the base
+                    Vector3D {
+                        x: 1.0,
+                        y: 0.0,
+                        z: 0.0,
+                    }, // Bottom-right of the base
+                ]),
                 // SIDE TRIANGLES (each connects the apex to the base)
                 // South Triangle
-                Triangle {
-                    vector3d: [
-                        Vector3D {
-                            x: 0.0,
-                            y: 0.0,
-                            z: 0.0,
-                        }, // Base bottom-left
-                        Vector3D {
-                            x: 0.7,
-                            y: 0.7,
-                            z: 1.0,
-                        }, // Apex of the pyramid
-                        Vector3D {
-                            x: 1.0,
-                            y: 0.0,
-                            z: 0.0,
-                        }, // Base bottom-right
-                    ],
-                },
+                Triangle::new_from_vectors([
+                    Vector3D {
+                        x: 0.0,
+                        y: 0.0,
+                        z: 0.0,
+                    }, // Base bottom-left
+                    Vector3D {
+                        x: 0.7,
+                        y: 0.7,
+                        z: 1.0,
+                    }, // Apex of the pyramid
+                    Vector3D {
+                        x: 1.0,
+                        y: 0.0,
+                        z: 0.0,
+                    }, // Base bottom-right
+                ]),
                 // West Triangle
-                Triangle {
-                    vector3d: [
-                        Vector3D {
-                            x: 0.0,
-                            y: 0.0,
-                            z: 0.0,
-                        }, // Base bottom-left
-                        Vector3D {
-                            x: 0.7,
-                            y: 0.7,
-                            z: 1.0,
-                        }, // Apex of the pyramid
-                        Vector3D {
-                            x: 0.0,
-                            y: 1.0,
-                            z: 0.0,
-                        }, // Base top-left
-                    ],
-                },
+                Triangle::new_from_vectors([
+                    Vector3D {
+                        x: 0.0,
+                        y: 0.0,
+                        z: 0.0,
+                    }, // Base bottom-left
+                    Vector3D {
+                        x: 0.7,
+                        y: 0.7,
+                        z: 1.0,
+                    }, // Apex of the pyramid
+                    Vector3D {
+                        x: 0.0,
+                        y: 1.0,
+                        z: 0.0,
+                    }, // Base top-left
+                ]),
                 // East Triangle
-                Triangle {
-                    vector3d: [
-                        Vector3D {
-                            x: 1.0,
-                            y: 0.0,
-                            z: 0.0,
-                        }, // Base bottom-right
-                        Vector3D {
-                            x: 0.7,
-                            y: 0.7,
-                            z: 1.0,
-                        }, // Apex of the pyramid
-                        Vector3D {
-                            x: 1.0,
-                            y: 1.0,
-                            z: 0.0,
-                        }, // Base top-right
-                    ],
-                },
+                Triangle::new_from_vectors([
+                    Vector3D {
+                        x: 1.0,
+                        y: 0.0,
+                        z: 0.0,
+                    }, // Base bottom-right
+                    Vector3D {
+                        x: 0.7,
+                        y: 0.7,
+                        z: 1.0,
+                    }, // Apex of the pyramid
+                    Vector3D {
+                        x: 1.0,
+                        y: 1.0,
+                        z: 0.0,
+                    }, // Base top-right
+                ]),
                 // North Triangle
-                Triangle {
-                    vector3d: [
-                        Vector3D {
-                            x: 0.0,
-                            y: 1.0,
-                            z: 0.0,
-                        }, // Base top-left
-                        Vector3D {
-                            x: 0.7,
-                            y: 0.7,
-                            z: 1.0,
-                        }, // Apex of the pyramid
-                        Vector3D {
-                            x: 1.0,
-                            y: 1.0,
-                            z: 0.0,
-                        }, // Base top-right
-                    ],
-                },
+                Triangle::new_from_vectors([
+                    Vector3D {
+                        x: 0.0,
+                        y: 1.0,
+                        z: 0.0,
+                    }, // Base top-left
+                    Vector3D {
+                        x: 0.7,
+                        y: 0.7,
+                        z: 1.0,
+                    }, // Apex of the pyramid
+                    Vector3D {
+                        x: 1.0,
+                        y: 1.0,
+                        z: 0.0,
+                    }, // Base top-right
+                ]),
             ],
         }
     }
@@ -397,9 +360,7 @@ impl Mesh {
                 z: 1.0,
             };
 
-            triangles.push(Triangle {
-                vector3d: [top_center, top1, top2],
-            });
+            triangles.push(Triangle::new_from_vectors([top_center, top1, top2]));
         }
 
         for i in 0..num_segments {
@@ -423,9 +384,11 @@ impl Mesh {
                 z: 0.0,
             };
 
-            triangles.push(Triangle {
-                vector3d: [bottom_center, bottom1, bottom2],
-            });
+            triangles.push(Triangle::new_from_vectors([
+                bottom_center,
+                bottom1,
+                bottom2,
+            ]));
         }
 
         for i in 0..num_segments {
@@ -454,12 +417,16 @@ impl Mesh {
                 z: 0.0,
             };
 
-            triangles.push(Triangle {
-                vector3d: [top1.clone(), top2.clone(), bottom1.clone()],
-            });
-            triangles.push(Triangle {
-                vector3d: [top2.clone(), bottom2.clone(), bottom1.clone()],
-            });
+            triangles.push(Triangle::new_from_vectors([
+                top1.clone(),
+                top2.clone(),
+                bottom1.clone(),
+            ]));
+            triangles.push(Triangle::new_from_vectors([
+                top2.clone(),
+                bottom2.clone(),
+                bottom1.clone(),
+            ]));
         }
         Mesh { triangles }
     }
