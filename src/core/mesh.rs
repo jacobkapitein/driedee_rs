@@ -1,10 +1,16 @@
-use super::{triangle::Triangle, vector_3d::Vector3D};
+use super::{files::load_from_obj_file, triangle::Triangle, vector_3d::Vector3D};
 
 pub struct Mesh {
     pub triangles: Vec<Triangle>,
 }
 
 impl Mesh {
+    pub fn from_file(filename: &str) -> Mesh {
+        let mut mesh = Mesh { triangles: vec![] };
+        load_from_obj_file(filename, &mut mesh.triangles);
+        mesh
+    }
+
     pub fn from_cube() -> Mesh {
         Mesh {
             triangles: vec![

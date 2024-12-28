@@ -21,6 +21,14 @@ impl Triangle {
             base_color: Color::RGB(255, 255, 255),
         }
     }
+
+    pub fn from_vectors(vectors: &Vec<Vector3D>, indices: [usize; 3]) -> Triangle {
+        Triangle::new_from_vectors([
+            vectors[indices[0]].clone(),
+            vectors[indices[1]].clone(),
+            vectors[indices[2]].clone(),
+        ])
+    }
 }
 
 impl Clone for Triangle {

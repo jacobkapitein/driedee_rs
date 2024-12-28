@@ -1,4 +1,6 @@
 extern crate sdl2;
+use std::cmp::Ordering;
+
 use sdl2::{
     pixels::Color,
     rect::{FPoint, FRect, Point},
@@ -56,7 +58,7 @@ impl Engine {
             size_x,
             size_y,
             projection_matrix,
-            mesh_cube: Mesh::from_cube(),
+            mesh_cube: Mesh::from_file("./teapot.obj"),
             theta: 0.0,
             camera: Vector3D::new(),
         }
@@ -85,7 +87,7 @@ impl Engine {
         mat_rot_x.matrix[2][2] = (self.theta * 0.5).cos();
         mat_rot_x.matrix[3][3] = 1.0;
 
-        let mut projected_triangles: Vec<Triangle> = Vec::new();
+        let mut triangles_to_draw: Vec<Triangle> = Vec::new();
 
         // Now, draw the triangles
         for triangle in &self.mesh_cube.triangles {
@@ -126,11 +128,11 @@ impl Engine {
                 &mat_rot_z,
             );
 
-            // Translate to world space
+            // Translate in world space
             let mut translated_triangle = rotated_zx.clone();
-            translated_triangle.vector3d[0].z = rotated_zx.vector3d[0].z + 3.0;
-            translated_triangle.vector3d[1].z = rotated_zx.vector3d[1].z + 3.0;
-            translated_triangle.vector3d[2].z = rotated_zx.vector3d[2].z + 3.0;
+            translated_triangle.vector3d[0].z = rotated_zx.vector3d[0].z + 8.0;
+            translated_triangle.vector3d[1].z = rotated_zx.vector3d[1].z + 8.0;
+            translated_triangle.vector3d[2].z = rotated_zx.vector3d[2].z + 8.0;
 
             // Calculate normals
             let mut normal = Vector3D::new();
@@ -211,10 +213,18 @@ impl Engine {
             projected_triangle.vector3d[2].x *= 0.5 * self.size_x as f32;
             projected_triangle.vector3d[2].y *= 0.5 * self.size_y as f32;
 
-            projected_triangles.push(projected_triangle);
+            triangles_to_draw.push(projected_triangle);
         }
 
-        for projected_triangle in projected_triangles {
+        // First, sort all the triangles
+        triangles_to_draw.sort_by(|t1, t2| {
+            let z1 = (t1.vector3d[0].z + t1.vector3d[1].z + t1.vector3d[2].z) / 3.0;
+            let z2 = (t2.vector3d[0].z + t2.vector3d[1].z + t2.vector3d[2].z) / 3.0;
+
+            z1.partial_cmp(&z2).unwrap_or(std::cmp::Ordering::Equal)
+        });
+
+        for projected_triangle in triangles_to_draw {
             // self.draw_wireframe(&projected_triangle);
             self.draw_filled_triangle(&projected_triangle);
         }
@@ -254,19 +264,6 @@ impl Engine {
             ordered_points.swap(2, 1)
         }
 
-        // TODO: DEBUG ONLY TO DRAW HIGHEST POINT
-        // self.canvas.set_draw_color(Color::RGB(255, 0, 0));
-        // self.canvas
-        //     .draw_frect(FRect::new(
-        //         ordered_points[0].x,
-        //         ordered_points[0].y,
-        //         4.0,
-        //         4.0,
-        //     ))
-        //     .expect("Error drawing point");
-        // self.canvas.set_draw_color(Color::RGB(255, 255, 255));
-        // END DEBUG
-
         let mut x01 = interpolate(
             ordered_points[0].x,
             ordered_points[0].y,
@@ -305,12 +302,18 @@ impl Engine {
 
         self.canvas.set_draw_color(projected_triangle.base_color);
         for y in (ordered_points[0].y as i32)..(ordered_points[2].y as i32) {
-            for x in ((x_left[y as usize - ordered_points[0].y as usize]) as i32)
-                ..((x_right[y as usize - ordered_points[0].y as usize]) as i32)
-            {
-                self.canvas
-                    .draw_point(Point::new(x, y))
-                    .expect("Error drawing pixel");
+            let index = (y as usize).wrapping_sub(ordered_points[0].y as usize);
+
+            // Check if the index is within bounds
+            if index < x_left.len() && index < x_right.len() {
+                let x_start = x_left[index] as i32;
+                let x_end = x_right[index] as i32;
+
+                for x in x_start..x_end {
+                    self.canvas
+                        .draw_point(Point::new(x, y))
+                        .expect("Error drawing pixel");
+                }
             }
         }
     }
