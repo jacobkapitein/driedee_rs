@@ -18,12 +18,12 @@ impl Mesh {
                         },
                         Vector3D {
                             x: 0.0,
-                            y: 1.4,
+                            y: 1.0,
                             z: 0.0,
                         },
                         Vector3D {
-                            x: 1.4,
-                            y: 1.4,
+                            x: 1.0,
+                            y: 1.0,
                             z: 0.0,
                         },
                     ],
@@ -36,12 +36,12 @@ impl Mesh {
                             z: 0.0,
                         },
                         Vector3D {
-                            x: 1.4,
-                            y: 1.4,
+                            x: 1.0,
+                            y: 1.0,
                             z: 0.0,
                         },
                         Vector3D {
-                            x: 1.4,
+                            x: 1.0,
                             y: 0.0,
                             z: 0.0,
                         },
@@ -51,38 +51,38 @@ impl Mesh {
                 Triangle {
                     vector3d: [
                         Vector3D {
-                            x: 0.0,
+                            x: 1.0,
                             y: 0.0,
-                            z: 1.4,
+                            z: 1.0,
                         },
                         Vector3D {
-                            x: 1.4,
-                            y: 1.4,
-                            z: 1.4,
+                            x: 1.0,
+                            y: 1.0,
+                            z: 1.0,
                         },
                         Vector3D {
                             x: 0.0,
-                            y: 1.4,
-                            z: 1.4,
+                            y: 1.0,
+                            z: 1.0,
                         },
                     ],
                 },
                 Triangle {
                     vector3d: [
                         Vector3D {
+                            x: 1.0,
+                            y: 0.0,
+                            z: 1.0,
+                        },
+                        Vector3D {
+                            x: 0.0,
+                            y: 1.0,
+                            z: 1.0,
+                        },
+                        Vector3D {
                             x: 0.0,
                             y: 0.0,
-                            z: 1.4,
-                        },
-                        Vector3D {
-                            x: 1.4,
-                            y: 0.0,
-                            z: 1.4,
-                        },
-                        Vector3D {
-                            x: 1.4,
-                            y: 1.4,
-                            z: 1.4,
+                            z: 1.0,
                         },
                     ],
                 },
@@ -90,38 +90,38 @@ impl Mesh {
                 Triangle {
                     vector3d: [
                         Vector3D {
-                            x: 1.4,
+                            x: 1.0,
                             y: 0.0,
                             z: 0.0,
                         },
                         Vector3D {
-                            x: 1.4,
-                            y: 1.4,
+                            x: 1.0,
+                            y: 1.0,
                             z: 0.0,
                         },
                         Vector3D {
-                            x: 1.4,
-                            y: 1.4,
-                            z: 1.4,
+                            x: 1.0,
+                            y: 1.0,
+                            z: 1.0,
                         },
                     ],
                 },
                 Triangle {
                     vector3d: [
                         Vector3D {
-                            x: 1.4,
+                            x: 1.0,
                             y: 0.0,
                             z: 0.0,
                         },
                         Vector3D {
-                            x: 1.4,
-                            y: 1.4,
-                            z: 1.4,
+                            x: 1.0,
+                            y: 1.0,
+                            z: 1.0,
                         },
                         Vector3D {
-                            x: 1.4,
+                            x: 1.0,
                             y: 0.0,
-                            z: 1.4,
+                            z: 1.0,
                         },
                     ],
                 },
@@ -131,16 +131,16 @@ impl Mesh {
                         Vector3D {
                             x: 0.0,
                             y: 0.0,
-                            z: 0.0,
+                            z: 1.0,
                         },
                         Vector3D {
                             x: 0.0,
-                            y: 1.4,
-                            z: 1.4,
+                            y: 1.0,
+                            z: 1.0,
                         },
                         Vector3D {
                             x: 0.0,
-                            y: 1.4,
+                            y: 1.0,
                             z: 0.0,
                         },
                     ],
@@ -150,17 +150,17 @@ impl Mesh {
                         Vector3D {
                             x: 0.0,
                             y: 0.0,
+                            z: 1.0,
+                        },
+                        Vector3D {
+                            x: 0.0,
+                            y: 1.0,
                             z: 0.0,
                         },
                         Vector3D {
                             x: 0.0,
                             y: 0.0,
-                            z: 1.4,
-                        },
-                        Vector3D {
-                            x: 0.0,
-                            y: 1.4,
-                            z: 1.4,
+                            z: 0.0,
                         },
                     ],
                 },
@@ -169,18 +169,18 @@ impl Mesh {
                     vector3d: [
                         Vector3D {
                             x: 0.0,
-                            y: 1.4,
+                            y: 1.0,
                             z: 0.0,
                         },
                         Vector3D {
                             x: 0.0,
-                            y: 1.4,
-                            z: 1.4,
+                            y: 1.0,
+                            z: 1.0,
                         },
                         Vector3D {
-                            x: 1.4,
-                            y: 1.4,
-                            z: 1.4,
+                            x: 1.0,
+                            y: 1.0,
+                            z: 1.0,
                         },
                     ],
                 },
@@ -188,17 +188,17 @@ impl Mesh {
                     vector3d: [
                         Vector3D {
                             x: 0.0,
-                            y: 1.4,
+                            y: 1.0,
                             z: 0.0,
                         },
                         Vector3D {
-                            x: 1.4,
-                            y: 1.4,
-                            z: 1.4,
+                            x: 1.0,
+                            y: 1.0,
+                            z: 1.0,
                         },
                         Vector3D {
-                            x: 1.4,
-                            y: 1.4,
+                            x: 1.0,
+                            y: 1.0,
                             z: 0.0,
                         },
                     ],
@@ -207,38 +207,38 @@ impl Mesh {
                 Triangle {
                     vector3d: [
                         Vector3D {
+                            x: 1.0,
+                            y: 0.0,
+                            z: 1.0,
+                        },
+                        Vector3D {
+                            x: 0.0,
+                            y: 0.0,
+                            z: 1.0,
+                        },
+                        Vector3D {
                             x: 0.0,
                             y: 0.0,
                             z: 0.0,
-                        },
-                        Vector3D {
-                            x: 1.4,
-                            y: 0.0,
-                            z: 1.4,
-                        },
-                        Vector3D {
-                            x: 0.0,
-                            y: 0.0,
-                            z: 1.4,
                         },
                     ],
                 },
                 Triangle {
                     vector3d: [
                         Vector3D {
+                            x: 1.0,
+                            y: 0.0,
+                            z: 1.0,
+                        },
+                        Vector3D {
                             x: 0.0,
                             y: 0.0,
                             z: 0.0,
                         },
                         Vector3D {
-                            x: 1.4,
+                            x: 1.0,
                             y: 0.0,
                             z: 0.0,
-                        },
-                        Vector3D {
-                            x: 1.4,
-                            y: 0.0,
-                            z: 1.4,
                         },
                     ],
                 },
@@ -258,34 +258,34 @@ impl Mesh {
                             z: 0.0,
                         }, // Bottom-left of the base
                         Vector3D {
-                            x: 1.4,
+                            x: 0.0,
+                            y: 1.0,
+                            z: 0.0,
+                        }, // Top-left of the base
+                        Vector3D {
+                            x: 1.0,
                             y: 0.0,
                             z: 0.0,
                         }, // Bottom-right of the base
-                        Vector3D {
-                            x: 0.0,
-                            y: 1.4,
-                            z: 0.0,
-                        }, // Top-left of the base
                     ],
                 },
                 Triangle {
                     vector3d: [
                         Vector3D {
-                            x: 1.4,
-                            y: 0.0,
+                            x: 0.0,
+                            y: 1.0,
                             z: 0.0,
-                        }, // Bottom-right of the base
+                        }, // Top-left of the base
                         Vector3D {
-                            x: 1.4,
-                            y: 1.4,
+                            x: 1.0,
+                            y: 1.0,
                             z: 0.0,
                         }, // Top-right of the base
                         Vector3D {
-                            x: 0.0,
-                            y: 1.4,
+                            x: 1.0,
+                            y: 0.0,
                             z: 0.0,
-                        }, // Top-left of the base
+                        }, // Bottom-right of the base
                     ],
                 },
                 // SIDE TRIANGLES (each connects the apex to the base)
@@ -298,15 +298,15 @@ impl Mesh {
                             z: 0.0,
                         }, // Base bottom-left
                         Vector3D {
-                            x: 1.4,
+                            x: 0.7,
+                            y: 0.7,
+                            z: 1.0,
+                        }, // Apex of the pyramid
+                        Vector3D {
+                            x: 1.0,
                             y: 0.0,
                             z: 0.0,
                         }, // Base bottom-right
-                        Vector3D {
-                            x: 0.7,
-                            y: 0.7,
-                            z: 1.4,
-                        }, // Apex of the pyramid
                     ],
                 },
                 // West Triangle
@@ -318,35 +318,35 @@ impl Mesh {
                             z: 0.0,
                         }, // Base bottom-left
                         Vector3D {
-                            x: 0.0,
-                            y: 1.4,
-                            z: 0.0,
-                        }, // Base top-left
-                        Vector3D {
                             x: 0.7,
                             y: 0.7,
-                            z: 1.4,
+                            z: 1.0,
                         }, // Apex of the pyramid
+                        Vector3D {
+                            x: 0.0,
+                            y: 1.0,
+                            z: 0.0,
+                        }, // Base top-left
                     ],
                 },
                 // East Triangle
                 Triangle {
                     vector3d: [
                         Vector3D {
-                            x: 1.4,
+                            x: 1.0,
                             y: 0.0,
                             z: 0.0,
                         }, // Base bottom-right
                         Vector3D {
-                            x: 1.4,
-                            y: 1.4,
-                            z: 0.0,
-                        }, // Base top-right
-                        Vector3D {
                             x: 0.7,
                             y: 0.7,
-                            z: 1.4,
+                            z: 1.0,
                         }, // Apex of the pyramid
+                        Vector3D {
+                            x: 1.0,
+                            y: 1.0,
+                            z: 0.0,
+                        }, // Base top-right
                     ],
                 },
                 // North Triangle
@@ -354,19 +354,19 @@ impl Mesh {
                     vector3d: [
                         Vector3D {
                             x: 0.0,
-                            y: 1.4,
+                            y: 1.0,
                             z: 0.0,
                         }, // Base top-left
                         Vector3D {
-                            x: 1.4,
-                            y: 1.4,
-                            z: 0.0,
-                        }, // Base top-right
-                        Vector3D {
                             x: 0.7,
                             y: 0.7,
-                            z: 1.4,
+                            z: 1.0,
                         }, // Apex of the pyramid
+                        Vector3D {
+                            x: 1.0,
+                            y: 1.0,
+                            z: 0.0,
+                        }, // Base top-right
                     ],
                 },
             ],
@@ -384,17 +384,17 @@ impl Mesh {
             let top_center = Vector3D {
                 x: 0.7,
                 y: 0.7,
-                z: 1.4,
+                z: 1.0,
             };
             let top1 = Vector3D {
                 x: 0.7 + 0.7 * angle1.cos(),
                 y: 0.7 + 0.7 * angle1.sin(),
-                z: 1.4,
+                z: 1.0,
             };
             let top2 = Vector3D {
                 x: 0.7 + 0.7 * angle2.cos(),
                 y: 0.7 + 0.7 * angle2.sin(),
-                z: 1.4,
+                z: 1.0,
             };
 
             triangles.push(Triangle {
@@ -436,12 +436,12 @@ impl Mesh {
             let top1 = Vector3D {
                 x: 0.7 + 0.7 * angle1.cos(),
                 y: 0.7 + 0.7 * angle1.sin(),
-                z: 1.4,
+                z: 1.0,
             };
             let top2 = Vector3D {
                 x: 0.7 + 0.7 * angle2.cos(),
                 y: 0.7 + 0.7 * angle2.sin(),
-                z: 1.4,
+                z: 1.0,
             };
             let bottom1 = Vector3D {
                 x: 0.7 + 0.7 * angle1.cos(),
