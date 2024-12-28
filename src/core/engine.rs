@@ -1,9 +1,8 @@
 extern crate sdl2;
-use std::cmp::Ordering;
 
 use sdl2::{
     pixels::Color,
-    rect::{FPoint, FRect, Point},
+    rect::{FPoint, Point},
     render::Canvas,
     video::Window,
     Sdl,
