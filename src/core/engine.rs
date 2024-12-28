@@ -89,7 +89,8 @@ impl Engine {
 
         // Now, draw the triangles
         for triangle in &self.mesh_cube.triangles {
-            let mut projected_triangle = Triangle::new();
+            let mut projected_triangle = triangle.clone();
+            projected_triangle.base_color = Color::RGB(255, 0, 0);
             let mut rotated_z = Triangle::new();
             let mut rotated_zx = Triangle::new();
 
@@ -177,7 +178,7 @@ impl Engine {
                 + normal.z * light_direction.z;
 
             projected_triangle.base_color =
-                self.get_color(dot_product, translated_triangle.base_color);
+                self.get_color(dot_product, projected_triangle.base_color);
 
             // Project triangles from 3D to 2D
             self.multiply_matrix_vector(
