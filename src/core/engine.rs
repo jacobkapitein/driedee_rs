@@ -130,9 +130,9 @@ impl Engine {
 
             // Translate in world space
             let mut translated_triangle = rotated_zx.clone();
-            translated_triangle.vector3d[0].z = rotated_zx.vector3d[0].z + 8.0;
-            translated_triangle.vector3d[1].z = rotated_zx.vector3d[1].z + 8.0;
-            translated_triangle.vector3d[2].z = rotated_zx.vector3d[2].z + 8.0;
+            translated_triangle.vector3d[0].z = rotated_zx.vector3d[0].z + 6.0;
+            translated_triangle.vector3d[1].z = rotated_zx.vector3d[1].z + 6.0;
+            translated_triangle.vector3d[2].z = rotated_zx.vector3d[2].z + 6.0;
 
             // Calculate normals
             let mut normal = Vector3D::new();
@@ -221,7 +221,7 @@ impl Engine {
             let z1 = (t1.vector3d[0].z + t1.vector3d[1].z + t1.vector3d[2].z) / 3.0;
             let z2 = (t2.vector3d[0].z + t2.vector3d[1].z + t2.vector3d[2].z) / 3.0;
 
-            z1.partial_cmp(&z2).unwrap_or(std::cmp::Ordering::Equal)
+            z2.partial_cmp(&z1).unwrap_or(std::cmp::Ordering::Equal)
         });
 
         for projected_triangle in triangles_to_draw {
