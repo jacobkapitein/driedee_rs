@@ -1,5 +1,5 @@
 use core::engine::Engine;
-use sdl2::event::Event;
+use sdl2::event::{Event, WindowEvent};
 use sdl2::keyboard::Keycode;
 use std::time::Duration;
 
@@ -29,6 +29,10 @@ fn main() -> Result<(), String> {
                     keycode: Some(keycode),
                     ..
                 } => engine.move_camera(keycode, 0.016),
+                Event::Window {
+                    win_event: WindowEvent::Resized(new_x, new_y),
+                    ..
+                } => engine.resize_window(new_x, new_y),
                 _ => {}
             }
         }

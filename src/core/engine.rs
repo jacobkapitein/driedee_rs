@@ -40,6 +40,7 @@ impl Engine {
         let window = video_subsystem
             .window(title, size_x, size_y)
             .position_centered()
+            .resizable()
             .opengl()
             .build()
             .expect("Error creating window");
@@ -77,7 +78,7 @@ impl Engine {
         let rotation_z_matrix = Matrix4X4::from_rotation_z(self.theta * 0.5);
         let rotation_x_matrix = Matrix4X4::from_rotation_x(self.theta);
 
-        let translation_matrix = Matrix4X4::from_translation(0.0, 0.0, 100.0);
+        let translation_matrix = Matrix4X4::from_translation(0.0, 0.0, 16.0);
 
         let mut world_matrix: Matrix4X4 = &rotation_z_matrix * &rotation_x_matrix;
         world_matrix = &world_matrix * &translation_matrix;
@@ -396,5 +397,10 @@ impl Engine {
             Keycode::A => self.r_yaw -= 8.0 * elapsed_time,
             _ => {}
         }
+    }
+
+    pub fn resize_window(&mut self, new_x: i32, new_y: i32) {
+        self.size_x = new_x as u32;
+        self.size_y = new_y as u32;
     }
 }
