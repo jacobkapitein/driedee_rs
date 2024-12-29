@@ -89,8 +89,7 @@ impl Engine {
 
         let mut triangles_to_draw: Vec<Triangle> = Vec::new();
 
-        // Calculate stuff
-
+        // Do all transformations
         for triangle in &self.mesh_cube.triangles {
             let mut transformed_triangle = Triangle::new();
             let mut viewed_triangle = Triangle::new();
