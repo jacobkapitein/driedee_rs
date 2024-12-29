@@ -15,22 +15,17 @@ impl Vector3D {
             x: 0.0,
             y: 0.0,
             z: 0.0,
-            w: 0.0,
+            w: 1.0,
         }
     }
 
     pub fn from_coords(x: f32, y: f32, z: f32) -> Self {
-        Self { x, y, z, w: 0.0 }
+        Self { x, y, z, w: 1.0 }
     }
 
     pub fn from_normalise(&self) -> Self {
         let length = vector_len(&self);
-        Self {
-            x: self.x / length,
-            y: self.y / length,
-            z: self.z / length,
-            w: self.w,
-        }
+        Self::from_coords(self.x / length, self.y / length, self.z / length)
     }
 }
 
@@ -65,19 +60,19 @@ impl std::ops::Sub for Vector3D {
     }
 }
 
-impl std::ops::Div for Vector3D {
+impl std::ops::Div<f32> for Vector3D {
     type Output = Self;
 
-    fn div(self, rhs: Self) -> Self::Output {
-        Self::from_coords(self.x / rhs.x, self.y / rhs.y, self.z / rhs.z)
+    fn div(self, rhs: f32) -> Self::Output {
+        Self::from_coords(self.x / rhs, self.y / rhs, self.z / rhs)
     }
 }
 
-impl std::ops::Mul for Vector3D {
+impl std::ops::Mul<f32> for Vector3D {
     type Output = Self;
 
-    fn mul(self, rhs: Self) -> Self::Output {
-        Self::from_coords(self.x * rhs.x, self.y * rhs.y, self.z * rhs.z)
+    fn mul(self, rhs: f32) -> Self::Output {
+        Self::from_coords(self.x * rhs, self.y * rhs, self.z * rhs)
     }
 }
 

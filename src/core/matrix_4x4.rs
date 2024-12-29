@@ -98,19 +98,19 @@ impl Matrix4X4 {
         new_vector.x = vector.x * self.content[0][0]
             + vector.y * self.content[1][0]
             + vector.z * self.content[2][0]
-            + self.content[3][0];
+            + vector.w * self.content[3][0];
         new_vector.y = vector.x * self.content[0][1]
             + vector.y * self.content[1][1]
             + vector.z * self.content[2][1]
-            + self.content[3][1];
+            + vector.w * self.content[3][1];
         new_vector.z = vector.x * self.content[0][2]
             + vector.y * self.content[1][2]
             + vector.z * self.content[2][2]
-            + self.content[3][2];
+            + vector.w * self.content[3][2];
         new_vector.w = vector.x * self.content[0][3]
             + vector.y * self.content[1][3]
             + vector.z * self.content[2][3]
-            + self.content[3][3];
+            + vector.w * self.content[3][3];
 
         new_vector
     }
@@ -122,12 +122,12 @@ impl Mul for Matrix4X4 {
     fn mul(self, matrix: Self) -> Self::Output {
         let mut new_matrix = Self::new();
 
-        for col in 0..4 {
-            for row in 0..4 {
-                new_matrix.content[row][col] = self.content[row][col] * matrix.content[0][col]
-                    + self.content[row][col] * matrix.content[1][col]
-                    + self.content[row][col] * matrix.content[2][col]
-                    + self.content[row][col] * matrix.content[3][col];
+        for col in 0..matrix.content.len() {
+            for row in 0..matrix.content[col].len() {
+                new_matrix.content[row][col] = self.content[row][0] * matrix.content[0][col]
+                    + self.content[row][1] * matrix.content[1][col]
+                    + self.content[row][2] * matrix.content[2][col]
+                    + self.content[row][3] * matrix.content[3][col];
             }
         }
 

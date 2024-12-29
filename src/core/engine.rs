@@ -9,7 +9,11 @@ use sdl2::{
 };
 
 use super::{
-    math::interpolate, matrix_4x4::Matrix4X4, mesh::Mesh, triangle::Triangle, vector_3d::Vector3D,
+    math::{interpolate, vector_cross_product, vector_dot_product},
+    matrix_4x4::Matrix4X4,
+    mesh::Mesh,
+    triangle::Triangle,
+    vector_3d::Vector3D,
 };
 
 pub struct Engine {
@@ -51,7 +55,7 @@ impl Engine {
             size_x,
             size_y,
             projection_matrix,
-            mesh_cube: Mesh::from_file("./teapot.obj"),
+            mesh_cube: Mesh::from_file("./teapot.obj"), //"./teapot.obj"
             theta: 0.0,
             camera: Vector3D::new(),
         }
@@ -62,142 +66,80 @@ impl Engine {
         self.canvas.clear();
         self.canvas.set_draw_color(Color::RGB(255, 255, 255));
 
-        let mut mat_rot_z = Matrix4X4::new();
-        let mut mat_rot_x = Matrix4X4::new();
         self.theta += 1.0 * elapsed_time;
+        let rotation_z_matrix = Matrix4X4::from_rotation_z(self.theta * 0.5);
+        let rotation_x_matrix = Matrix4X4::from_rotation_x(self.theta);
 
-        mat_rot_z.content[0][0] = self.theta.cos();
-        mat_rot_z.content[0][1] = self.theta.sin();
-        mat_rot_z.content[1][0] = -self.theta.sin();
-        mat_rot_z.content[1][1] = self.theta.cos();
-        mat_rot_z.content[2][2] = 1.0;
-        mat_rot_z.content[3][3] = 1.0;
+        let translation_matrix = Matrix4X4::from_translation(0.0, 0.0, 8.0);
 
-        mat_rot_x.content[0][0] = 1.0;
-        mat_rot_x.content[1][1] = (self.theta * 0.5).cos();
-        mat_rot_x.content[1][2] = (self.theta * 0.5).sin();
-        mat_rot_x.content[2][1] = -(self.theta * 0.5).sin();
-        mat_rot_x.content[2][2] = (self.theta * 0.5).cos();
-        mat_rot_x.content[3][3] = 1.0;
+        let mut world_matrix: Matrix4X4 = rotation_z_matrix * rotation_x_matrix;
+        world_matrix = world_matrix * translation_matrix;
 
         let mut triangles_to_draw: Vec<Triangle> = Vec::new();
 
         // Now, draw the triangles
         for triangle in &self.mesh_cube.triangles {
-            let mut projected_triangle = triangle.clone();
-            projected_triangle.base_color = Color::RGB(255, 0, 0);
-            let mut rotated_z = Triangle::new();
-            let mut rotated_zx = Triangle::new();
+            let mut projected_triangle = Triangle::new();
+            let mut transformed_triangle = Triangle::new();
 
-            self.multiply_matrix_vector(
-                &triangle.vector3d[0],
-                &mut rotated_z.vector3d[0],
-                &mat_rot_x,
-            );
-            self.multiply_matrix_vector(
-                &triangle.vector3d[1],
-                &mut rotated_z.vector3d[1],
-                &mat_rot_x,
-            );
-            self.multiply_matrix_vector(
-                &triangle.vector3d[2],
-                &mut rotated_z.vector3d[2],
-                &mat_rot_x,
-            );
-
-            self.multiply_matrix_vector(
-                &rotated_z.vector3d[0],
-                &mut rotated_zx.vector3d[0],
-                &mat_rot_z,
-            );
-            self.multiply_matrix_vector(
-                &rotated_z.vector3d[1],
-                &mut rotated_zx.vector3d[1],
-                &mat_rot_z,
-            );
-            self.multiply_matrix_vector(
-                &rotated_z.vector3d[2],
-                &mut rotated_zx.vector3d[2],
-                &mat_rot_z,
-            );
-
-            // Translate in world space
-            let mut translated_triangle = rotated_zx.clone();
-            translated_triangle.vector3d[0].z = rotated_zx.vector3d[0].z + 6.0;
-            translated_triangle.vector3d[1].z = rotated_zx.vector3d[1].z + 6.0;
-            translated_triangle.vector3d[2].z = rotated_zx.vector3d[2].z + 6.0;
+            transformed_triangle.vector3d[0] = world_matrix.multiply_vector(&triangle.vector3d[0]);
+            transformed_triangle.vector3d[1] = world_matrix.multiply_vector(&triangle.vector3d[1]);
+            transformed_triangle.vector3d[2] = world_matrix.multiply_vector(&triangle.vector3d[2]);
 
             // Calculate normals
-            let mut normal = Vector3D::new();
-            let mut line1 = Vector3D::new();
-            let mut line2 = Vector3D::new();
+            let line1 =
+                transformed_triangle.vector3d[1].clone() - transformed_triangle.vector3d[0].clone();
+            let line2 =
+                transformed_triangle.vector3d[2].clone() - transformed_triangle.vector3d[0].clone();
 
-            line1.x = translated_triangle.vector3d[1].x - translated_triangle.vector3d[0].x;
-            line1.y = translated_triangle.vector3d[1].y - translated_triangle.vector3d[0].y;
-            line1.z = translated_triangle.vector3d[1].z - translated_triangle.vector3d[0].z;
+            // Get cross product of lines to get normal to triangle surface
+            let normal = vector_cross_product(&line1, &line2).from_normalise();
 
-            line2.x = translated_triangle.vector3d[2].x - translated_triangle.vector3d[0].x;
-            line2.y = translated_triangle.vector3d[2].y - translated_triangle.vector3d[0].y;
-            line2.z = translated_triangle.vector3d[2].z - translated_triangle.vector3d[0].z;
+            let camera_ray = transformed_triangle.vector3d[0].clone() - self.camera.clone();
 
-            normal.x = line1.y * line2.z - line1.z * line2.y;
-            normal.y = line1.z * line2.x - line1.x * line2.z;
-            normal.z = line1.x * line2.y - line1.y * line2.x;
-
-            let normal_length =
-                (normal.x * normal.x + normal.y * normal.y + normal.z * normal.z).sqrt();
-            normal.x /= normal_length;
-            normal.y /= normal_length;
-            normal.z /= normal_length;
-
-            if (normal.x * (translated_triangle.vector3d[0].x - self.camera.x)
-                + normal.y * (translated_triangle.vector3d[0].y - self.camera.y)
-                + normal.z * (translated_triangle.vector3d[0].z - self.camera.z))
-                >= 0.0
-            {
+            // Temporarily off for debugging purposes
+            if vector_dot_product(&normal, &camera_ray) >= 0.0 {
                 continue;
             }
 
             // Calculate illumination
-            let mut light_direction = Vector3D::new();
-            light_direction.z = -1.0;
-            let light_normal_length = (light_direction.x * light_direction.x
-                + light_direction.y * light_direction.y
-                + light_direction.z * light_direction.z)
-                .sqrt();
-            light_direction.x /= light_normal_length;
-            light_direction.y /= light_normal_length;
-            light_direction.z /= light_normal_length;
-            let dot_product = normal.x * light_direction.x
-                + normal.y * light_direction.y
-                + normal.z * light_direction.z;
+            let light_direction = Vector3D::from_coords(0.0, 0.0, -1.0).from_normalise();
+            let dot_product = f32::max(0.1, vector_dot_product(&light_direction, &normal));
 
             projected_triangle.base_color =
                 self.get_color(dot_product, projected_triangle.base_color);
 
             // Project triangles from 3D to 2D
-            self.multiply_matrix_vector(
-                &translated_triangle.vector3d[0],
-                &mut projected_triangle.vector3d[0],
-                &self.projection_matrix,
-            );
-            self.multiply_matrix_vector(
-                &translated_triangle.vector3d[1],
-                &mut projected_triangle.vector3d[1],
-                &self.projection_matrix,
-            );
-            self.multiply_matrix_vector(
-                &translated_triangle.vector3d[2],
-                &mut projected_triangle.vector3d[2],
-                &self.projection_matrix,
-            );
+            projected_triangle.vector3d[0] = self
+                .projection_matrix
+                .multiply_vector(&transformed_triangle.vector3d[0]);
+            projected_triangle.vector3d[1] = self
+                .projection_matrix
+                .multiply_vector(&transformed_triangle.vector3d[1]);
+            projected_triangle.vector3d[2] = self
+                .projection_matrix
+                .multiply_vector(&transformed_triangle.vector3d[2]);
 
-            projected_triangle.vector3d[0].x += 1.0;
-            projected_triangle.vector3d[0].y += 1.0;
-            projected_triangle.vector3d[1].x += 1.0;
-            projected_triangle.vector3d[1].y += 1.0;
-            projected_triangle.vector3d[2].x += 1.0;
-            projected_triangle.vector3d[2].y += 1.0;
+            if projected_triangle.vector3d[0].w != 0.0 {
+                projected_triangle.vector3d[0] =
+                    projected_triangle.vector3d[0].clone() / projected_triangle.vector3d[0].w;
+            }
+            if projected_triangle.vector3d[1].w != 0.0 {
+                projected_triangle.vector3d[1] =
+                    projected_triangle.vector3d[1].clone() / projected_triangle.vector3d[1].w;
+            }
+            if projected_triangle.vector3d[2].w != 0.0 {
+                projected_triangle.vector3d[2] =
+                    projected_triangle.vector3d[2].clone() / projected_triangle.vector3d[2].w;
+            }
+
+            let offset_view = Vector3D::from_coords(1.0, 1.0, 0.0);
+            projected_triangle.vector3d[0] =
+                projected_triangle.vector3d[0].clone() + offset_view.clone();
+            projected_triangle.vector3d[1] =
+                projected_triangle.vector3d[1].clone() + offset_view.clone();
+            projected_triangle.vector3d[2] =
+                projected_triangle.vector3d[2].clone() + offset_view.clone();
 
             projected_triangle.vector3d[0].x *= 0.5 * self.size_x as f32;
             projected_triangle.vector3d[0].y *= 0.5 * self.size_y as f32;
@@ -331,35 +273,5 @@ impl Engine {
                 FPoint::new(triangle.vector3d[0].x, triangle.vector3d[0].y),
             )
             .expect("Error drawing line");
-    }
-
-    pub fn multiply_matrix_vector(
-        &self,
-        input: &Vector3D,
-        output: &mut Vector3D,
-        matrix: &Matrix4X4,
-    ) {
-        output.x = input.x * matrix.content[0][0]
-            + input.y * matrix.content[1][0]
-            + input.z * matrix.content[2][0]
-            + matrix.content[3][0];
-        output.y = input.x * matrix.content[0][1]
-            + input.y * matrix.content[1][1]
-            + input.z * matrix.content[2][1]
-            + matrix.content[3][1];
-        output.z = input.x * matrix.content[0][2]
-            + input.y * matrix.content[1][2]
-            + input.z * matrix.content[2][2]
-            + matrix.content[3][2];
-        let w: f32 = input.x * matrix.content[0][3]
-            + input.y * matrix.content[1][3]
-            + input.z * matrix.content[2][3]
-            + matrix.content[3][3];
-
-        if w != 0.0 {
-            output.x /= w;
-            output.y /= w;
-            output.z /= w;
-        }
     }
 }
