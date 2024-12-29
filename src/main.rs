@@ -28,7 +28,7 @@ fn main() -> Result<(), String> {
                 Event::KeyDown {
                     keycode: Some(keycode),
                     ..
-                } => engine.move_camera(keycode),
+                } => engine.move_camera(keycode, 0.016),
                 _ => {}
             }
         }

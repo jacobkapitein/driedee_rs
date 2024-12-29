@@ -27,6 +27,7 @@ pub struct Engine {
     theta: f32,
     camera: Vector3D,
     look_direction: Vector3D,
+    r_yaw: f32,
 }
 
 impl Engine {
@@ -61,6 +62,7 @@ impl Engine {
             theta: 0.0,
             camera: Vector3D::new(),
             look_direction: Vector3D::from_coords(0.0, 0.0, 1.0),
+            r_yaw: 0.0,
         }
     }
 
@@ -79,7 +81,12 @@ impl Engine {
         world_matrix = &world_matrix * &translation_matrix;
 
         let up_vector = Vector3D::from_coords(0.0, 1.0, 0.0);
-        let target_vector = &self.camera + &self.look_direction;
+        let mut target_vector = Vector3D::from_coords(0.0, 0.0, 1.0);
+
+        let camera_rotation_matrix = Matrix4X4::from_rotation_y(self.r_yaw);
+
+        self.look_direction = &camera_rotation_matrix * &target_vector;
+        target_vector = &self.camera + &self.look_direction;
 
         let camera_matrix = Matrix4X4::from_point_at(&self.camera, &target_vector, &up_vector);
         let view_matrix = camera_matrix.quick_inverse();
@@ -88,7 +95,6 @@ impl Engine {
 
         // Now, draw the triangles
         for triangle in &self.mesh_cube.triangles {
-            let mut projected_triangle = Triangle::new();
             let mut transformed_triangle = Triangle::new();
             let mut viewed_triangle = Triangle::new();
 
@@ -114,39 +120,52 @@ impl Engine {
             let light_direction = Vector3D::from_coords(0.0, 0.0, -1.0).from_normalise();
             let dot_product = f32::max(0.1, vector_dot_product(&light_direction, &normal));
 
-            projected_triangle.base_color =
-                self.get_color(dot_product, projected_triangle.base_color);
-
             // Convert world space to view space
             viewed_triangle.vectors[0] = &view_matrix * &transformed_triangle.vectors[0];
             viewed_triangle.vectors[1] = &view_matrix * &transformed_triangle.vectors[1];
             viewed_triangle.vectors[2] = &view_matrix * &transformed_triangle.vectors[2];
 
-            // Project triangles from 3D to 2D
-            projected_triangle.vectors[0] = &self.projection_matrix * &viewed_triangle.vectors[0];
-            projected_triangle.vectors[1] = &self.projection_matrix * &viewed_triangle.vectors[1];
-            projected_triangle.vectors[2] = &self.projection_matrix * &viewed_triangle.vectors[2];
+            // Clip viewed triangle against the near plane
+            let clipped_triangles = &viewed_triangle.clip_against_plane(
+                Vector3D::from_coords(0.0, 0.0, 2.1),
+                Vector3D::from_coords(0.0, 0.0, 1.0),
+            );
 
-            projected_triangle.vectors[0] =
-                &projected_triangle.vectors[0] / projected_triangle.vectors[0].w;
-            projected_triangle.vectors[1] =
-                &projected_triangle.vectors[1] / projected_triangle.vectors[1].w;
-            projected_triangle.vectors[2] =
-                &projected_triangle.vectors[2] / projected_triangle.vectors[2].w;
+            for clipped_triangle in clipped_triangles {
+                let mut projected_triangle = Triangle::new();
+                projected_triangle.base_color = clipped_triangle.base_color;
+                projected_triangle.base_color =
+                    self.get_color(dot_product, projected_triangle.base_color);
 
-            let offset_view = Vector3D::from_coords(1.0, 1.0, 0.0);
-            projected_triangle.vectors[0] = &projected_triangle.vectors[0] + &offset_view;
-            projected_triangle.vectors[1] = &projected_triangle.vectors[1] + &offset_view;
-            projected_triangle.vectors[2] = &projected_triangle.vectors[2] + &offset_view;
+                // Project triangles from 3D to 2D
+                projected_triangle.vectors[0] =
+                    &self.projection_matrix * &clipped_triangle.vectors[0];
+                projected_triangle.vectors[1] =
+                    &self.projection_matrix * &clipped_triangle.vectors[1];
+                projected_triangle.vectors[2] =
+                    &self.projection_matrix * &clipped_triangle.vectors[2];
 
-            projected_triangle.vectors[0].x *= 0.5 * self.size_x as f32;
-            projected_triangle.vectors[0].y *= 0.5 * self.size_y as f32;
-            projected_triangle.vectors[1].x *= 0.5 * self.size_x as f32;
-            projected_triangle.vectors[1].y *= 0.5 * self.size_y as f32;
-            projected_triangle.vectors[2].x *= 0.5 * self.size_x as f32;
-            projected_triangle.vectors[2].y *= 0.5 * self.size_y as f32;
+                projected_triangle.vectors[0] =
+                    &projected_triangle.vectors[0] / projected_triangle.vectors[0].w;
+                projected_triangle.vectors[1] =
+                    &projected_triangle.vectors[1] / projected_triangle.vectors[1].w;
+                projected_triangle.vectors[2] =
+                    &projected_triangle.vectors[2] / projected_triangle.vectors[2].w;
 
-            triangles_to_draw.push(projected_triangle);
+                let offset_view = Vector3D::from_coords(1.0, 1.0, 0.0);
+                projected_triangle.vectors[0] = &projected_triangle.vectors[0] + &offset_view;
+                projected_triangle.vectors[1] = &projected_triangle.vectors[1] + &offset_view;
+                projected_triangle.vectors[2] = &projected_triangle.vectors[2] + &offset_view;
+
+                projected_triangle.vectors[0].x *= 0.5 * self.size_x as f32;
+                projected_triangle.vectors[0].y *= 0.5 * self.size_y as f32;
+                projected_triangle.vectors[1].x *= 0.5 * self.size_x as f32;
+                projected_triangle.vectors[1].y *= 0.5 * self.size_y as f32;
+                projected_triangle.vectors[2].x *= 0.5 * self.size_x as f32;
+                projected_triangle.vectors[2].y *= 0.5 * self.size_y as f32;
+
+                triangles_to_draw.push(projected_triangle);
+            }
         }
 
         // First, sort all the triangles
@@ -154,12 +173,18 @@ impl Engine {
             let z1 = (t1.vectors[0].z + t1.vectors[1].z + t1.vectors[2].z) / 3.0;
             let z2 = (t2.vectors[0].z + t2.vectors[1].z + t2.vectors[2].z) / 3.0;
 
-            z2.partial_cmp(&z1).unwrap_or(std::cmp::Ordering::Equal)
+            z2.partial_cmp(&z1).unwrap_or_else(|| {
+                if z1.is_nan() {
+                    std::cmp::Ordering::Less
+                } else {
+                    std::cmp::Ordering::Greater
+                }
+            })
         });
 
         for projected_triangle in triangles_to_draw {
-            // self.draw_wireframe(&projected_triangle);
             self.draw_filled_triangle(&projected_triangle);
+            self.draw_wireframe(&projected_triangle);
         }
 
         // Finally, show the buffer
@@ -273,10 +298,21 @@ impl Engine {
             .expect("Error drawing line");
     }
 
-    pub fn move_camera(&mut self, key: Keycode) {
+    pub fn move_camera(&mut self, key: Keycode, elapsed_time: f32) {
+        let vector_forward = &self.look_direction * (8.0 * elapsed_time);
         match key {
-            Keycode::UP => self.camera.y += 8.0,
-            Keycode::DOWN => self.camera.y -= 8.0,
+            Keycode::UP => self.camera.y += 8.0 * elapsed_time,
+            Keycode::DOWN => self.camera.y -= 8.0 * elapsed_time,
+            Keycode::LEFT => self.camera.x += 8.0 * elapsed_time,
+            Keycode::RIGHT => self.camera.x -= 8.0 * elapsed_time,
+            Keycode::W => {
+                self.camera = &self.camera + &vector_forward;
+            }
+            Keycode::S => {
+                self.camera = &self.camera - &vector_forward;
+            }
+            Keycode::D => self.r_yaw += 8.0 * elapsed_time,
+            Keycode::A => self.r_yaw -= 8.0 * elapsed_time,
             _ => {}
         }
     }

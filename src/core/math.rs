@@ -43,3 +43,19 @@ pub fn vector_cross_product(v1: &Vector3D, v2: &Vector3D) -> Vector3D {
 
     new_vector
 }
+
+pub fn intersect_plane(
+    plane_position: &Vector3D,
+    plane_normal: &Vector3D,
+    line_start: &Vector3D,
+    line_end: &Vector3D,
+) -> Vector3D {
+    let plane_n = plane_normal.from_normalise();
+    let plane_d: f32 = -vector_dot_product(&plane_n, &plane_position);
+    let ad: f32 = vector_dot_product(&line_start, &plane_n);
+    let bd: f32 = vector_dot_product(&line_end, &plane_n);
+    let t: f32 = (-plane_d - ad) / (bd - ad);
+    let line_start_to_end: Vector3D = line_end - line_start;
+    let line_to_intersect: Vector3D = &line_start_to_end * t;
+    return line_start + &line_to_intersect;
+}
