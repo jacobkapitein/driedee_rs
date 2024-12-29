@@ -1,6 +1,6 @@
 use sdl2::pixels::Color;
 
-use crate::core::{math::intersect_plane, triangle};
+use crate::core::math::intersect_plane;
 
 use super::{math::vector_dot_product, vector_3d::Vector3D};
 
@@ -33,7 +33,7 @@ impl Triangle {
     }
 
     pub fn clip_against_plane(
-        &mut self,
+        &self,
         plane_position: Vector3D,
         mut plane_normal: Vector3D,
     ) -> Vec<Triangle> {

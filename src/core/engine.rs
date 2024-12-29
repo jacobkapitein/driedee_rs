@@ -1,5 +1,7 @@
 extern crate sdl2;
 
+use std::collections::VecDeque;
+
 use sdl2::{
     keyboard::Keycode,
     pixels::Color,
@@ -58,7 +60,7 @@ impl Engine {
             size_x,
             size_y,
             projection_matrix,
-            mesh_cube: Mesh::from_file("C:\\Users\\jacob\\Downloads\\axis.obj"),
+            mesh_cube: Mesh::from_file("C:\\Users\\jacob\\Downloads\\mountains.obj"),
             theta: 0.0,
             camera: Vector3D::new(),
             look_direction: Vector3D::from_coords(0.0, 0.0, 1.0),
@@ -75,7 +77,7 @@ impl Engine {
         let rotation_z_matrix = Matrix4X4::from_rotation_z(self.theta * 0.5);
         let rotation_x_matrix = Matrix4X4::from_rotation_x(self.theta);
 
-        let translation_matrix = Matrix4X4::from_translation(0.0, 0.0, 16.0);
+        let translation_matrix = Matrix4X4::from_translation(0.0, 0.0, 100.0);
 
         let mut world_matrix: Matrix4X4 = &rotation_z_matrix * &rotation_x_matrix;
         world_matrix = &world_matrix * &translation_matrix;
@@ -182,9 +184,70 @@ impl Engine {
             })
         });
 
-        for projected_triangle in triangles_to_draw {
-            self.draw_filled_triangle(&projected_triangle);
-            self.draw_wireframe(&projected_triangle);
+        // Rasterize everything to the screen
+        for triangle_to_draw in triangles_to_draw {
+            // Clip triangle to draw against the screen edges
+            let mut triangle_queue: VecDeque<Triangle> = VecDeque::from([triangle_to_draw]);
+            let mut new_triangles = 1;
+            let mut clipped: Vec<Triangle> = vec![];
+
+            for i in 0..4 {
+                let mut triangles_to_add = 0;
+                while new_triangles > 0 {
+                    let test_triangle = triangle_queue.pop_front().expect("No triangle found");
+                    new_triangles -= 1;
+
+                    match i {
+                        0 => {
+                            let clipping_result = test_triangle.clip_against_plane(
+                                Vector3D::from_coords(0.0, 0.0, 0.0),
+                                Vector3D::from_coords(0.0, 1.0, 0.0),
+                            );
+                            triangles_to_add = clipping_result.len();
+                            clipped = clipping_result;
+                            break;
+                        }
+                        1 => {
+                            let clipping_result = test_triangle.clip_against_plane(
+                                Vector3D::from_coords(0.0, self.size_y as f32 - 1.0, 0.0),
+                                Vector3D::from_coords(0.0, -1.0, 0.0),
+                            );
+                            triangles_to_add = clipping_result.len();
+                            clipped = clipping_result;
+                            break;
+                        }
+                        2 => {
+                            let clipping_result = test_triangle.clip_against_plane(
+                                Vector3D::from_coords(0.0, 0.0, 0.0),
+                                Vector3D::from_coords(1.0, 1.0, 0.0),
+                            );
+                            triangles_to_add = clipping_result.len();
+                            clipped = clipping_result;
+                            break;
+                        }
+                        3 => {
+                            let clipping_result = test_triangle.clip_against_plane(
+                                Vector3D::from_coords(self.size_x as f32 - 1.0, 0.0, 0.0),
+                                Vector3D::from_coords(-1.0, 1.0, 0.0),
+                            );
+                            triangles_to_add = clipping_result.len();
+                            clipped = clipping_result;
+                            break;
+                        }
+                        _ => {}
+                    }
+
+                    for w in 0..triangles_to_add {
+                        triangle_queue.push_back(clipped[w].clone());
+                    }
+                }
+                new_triangles = triangle_queue.len();
+            }
+
+            for final_triangle in clipped {
+                self.draw_filled_triangle(&final_triangle);
+                // self.draw_wireframe(&final_triangle);
+            }
         }
 
         // Finally, show the buffer
