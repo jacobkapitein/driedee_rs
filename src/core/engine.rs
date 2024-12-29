@@ -26,7 +26,6 @@ pub struct Engine {
     size_y: u32,
     projection_matrix: Matrix4X4,
     mesh_cube: Mesh,
-    theta: f32,
     camera: Vector3D,
     look_direction: Vector3D,
     r_yaw: f32,
@@ -61,27 +60,21 @@ impl Engine {
             size_x,
             size_y,
             projection_matrix,
-            mesh_cube: Mesh::from_file("./teapot.obj"),
-            theta: 0.0,
+            mesh_cube: Mesh::from_file("C:\\Users\\jacob\\Downloads\\mountains.obj"),
             camera: Vector3D::new(),
             look_direction: Vector3D::from_coords(0.0, 0.0, 1.0),
             r_yaw: 0.0,
         }
     }
 
-    pub fn on_user_update(&mut self, elapsed_time: f32) -> bool {
+    pub fn on_user_update(&mut self) -> bool {
         self.canvas.set_draw_color(Color::RGB(0, 0, 0));
         self.canvas.clear();
         self.canvas.set_draw_color(Color::RGB(255, 255, 255));
 
-        // self.theta += 1.0 * elapsed_time;
-        let rotation_z_matrix = Matrix4X4::from_rotation_z(self.theta * 0.5);
-        let rotation_x_matrix = Matrix4X4::from_rotation_x(self.theta);
-
         let translation_matrix = Matrix4X4::from_translation(0.0, 0.0, 16.0);
 
-        let mut world_matrix: Matrix4X4 = &rotation_z_matrix * &rotation_x_matrix;
-        world_matrix = &world_matrix * &translation_matrix;
+        let world_matrix = &Matrix4X4::from_identity() * &translation_matrix;
 
         let up_vector = Vector3D::from_coords(0.0, 1.0, 0.0);
         let mut target_vector = Vector3D::from_coords(0.0, 0.0, 1.0);
@@ -96,7 +89,8 @@ impl Engine {
 
         let mut triangles_to_draw: Vec<Triangle> = Vec::new();
 
-        // Now, draw the triangles
+        // Calculate stuff
+
         for triangle in &self.mesh_cube.triangles {
             let mut transformed_triangle = Triangle::new();
             let mut viewed_triangle = Triangle::new();
@@ -130,7 +124,7 @@ impl Engine {
 
             // Clip viewed triangle against the near plane
             let clipped_triangles = &viewed_triangle.clip_against_plane(
-                Vector3D::from_coords(0.0, 0.0, 2.1),
+                Vector3D::from_coords(0.0, 0.0, 0.1),
                 Vector3D::from_coords(0.0, 0.0, 1.0),
             );
 
@@ -187,65 +181,49 @@ impl Engine {
 
         // Rasterize everything to the screen
         for triangle_to_draw in triangles_to_draw {
-            // Clip triangle to draw against the screen edges
-            let mut triangle_queue: VecDeque<Triangle> = VecDeque::from([triangle_to_draw]);
-            let mut new_triangles = 1;
-            let mut clipped: Vec<Triangle> = vec![];
+            // Define clipping planes
+            let clipping_planes = [
+                (
+                    Vector3D::from_coords(0.0, 0.0, 0.0),
+                    Vector3D::from_coords(0.0, 1.0, 0.0),
+                ), // Top
+                (
+                    Vector3D::from_coords(0.0, self.size_y as f32 - 1.0, 0.0),
+                    Vector3D::from_coords(0.0, -1.0, 0.0),
+                ), // Bottom
+                (
+                    Vector3D::from_coords(0.0, 0.0, 0.0),
+                    Vector3D::from_coords(1.0, 0.0, 0.0),
+                ), // Left
+                (
+                    Vector3D::from_coords(self.size_x as f32 - 1.0, 0.0, 0.0),
+                    Vector3D::from_coords(-1.0, 0.0, 0.0),
+                ), // Right
+            ];
 
-            for i in 0..4 {
-                let mut triangles_to_add = 0;
-                while new_triangles > 0 {
-                    let test_triangle = triangle_queue.pop_front().expect("No triangle found");
-                    new_triangles -= 1;
+            let mut triangle_queue: VecDeque<Triangle> = VecDeque::new();
+            triangle_queue.push_back(triangle_to_draw);
 
-                    match i {
-                        0 => {
-                            let clipping_result = test_triangle.clip_against_plane(
-                                Vector3D::from_coords(0.0, 0.0, 0.0),
-                                Vector3D::from_coords(0.0, 1.0, 0.0),
-                            );
-                            triangles_to_add = clipping_result.len();
-                            clipped = clipping_result;
-                            break;
-                        }
-                        1 => {
-                            let clipping_result = test_triangle.clip_against_plane(
-                                Vector3D::from_coords(0.0, self.size_y as f32 - 1.0, 0.0),
-                                Vector3D::from_coords(0.0, -1.0, 0.0),
-                            );
-                            triangles_to_add = clipping_result.len();
-                            clipped = clipping_result;
-                            break;
-                        }
-                        2 => {
-                            let clipping_result = test_triangle.clip_against_plane(
-                                Vector3D::from_coords(0.0, 0.0, 0.0),
-                                Vector3D::from_coords(1.0, 1.0, 0.0),
-                            );
-                            triangles_to_add = clipping_result.len();
-                            clipped = clipping_result;
-                            break;
-                        }
-                        3 => {
-                            let clipping_result = test_triangle.clip_against_plane(
-                                Vector3D::from_coords(self.size_x as f32 - 1.0, 0.0, 0.0),
-                                Vector3D::from_coords(-1.0, 1.0, 0.0),
-                            );
-                            triangles_to_add = clipping_result.len();
-                            clipped = clipping_result;
-                            break;
-                        }
-                        _ => {}
-                    }
+            for (plane_position, plane_normal) in &clipping_planes {
+                let mut next_queue = VecDeque::new();
 
-                    for w in 0..triangles_to_add {
-                        triangle_queue.push_back(clipped[w].clone());
+                while let Some(test_triangle) = triangle_queue.pop_front() {
+                    // Clip triangle against the current plane
+                    let clipped_triangles = test_triangle
+                        .clip_against_plane(plane_position.clone(), plane_normal.clone());
+
+                    // Add clipped triangles to the next queue
+                    for clipped_triangle in clipped_triangles {
+                        next_queue.push_back(clipped_triangle);
                     }
                 }
-                new_triangles = triangle_queue.len();
+
+                // Swap queues for the next iteration
+                triangle_queue = next_queue;
             }
 
-            for final_triangle in clipped {
+            // Draw all remaining triangles in the queue
+            for final_triangle in triangle_queue {
                 self.draw_filled_triangle(&final_triangle);
                 // self.draw_wireframe(&final_triangle);
             }
@@ -402,5 +380,9 @@ impl Engine {
     pub fn resize_window(&mut self, new_x: i32, new_y: i32) {
         self.size_x = new_x as u32;
         self.size_y = new_y as u32;
+    }
+
+    pub fn set_title(&mut self, new_title: String) {
+        self.canvas.window_mut().set_title(&new_title);
     }
 }

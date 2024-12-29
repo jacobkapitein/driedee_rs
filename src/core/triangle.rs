@@ -39,97 +39,98 @@ impl Triangle {
     ) -> Vec<Triangle> {
         plane_normal = plane_normal.from_normalise();
 
-        let dist = |p: &Vector3D| -> f32 {
-            let plane_position_dot_product =
-                plane_normal.x * p.x + plane_normal.y * p.y + plane_normal.z * p.z;
-            plane_position_dot_product - vector_dot_product(&plane_normal, &plane_position)
-        };
+        // Precompute the constant part of the distance calculation
+        let plane_offset = vector_dot_product(&plane_normal, &plane_position);
 
-        let mut inside_points: Vec<&Vector3D> = vec![];
-        let mut outside_points: Vec<&Vector3D> = vec![];
-
-        // Get distance of each point to plane
-        let distance0 = dist(&self.vectors[0]);
-        let distance1 = dist(&self.vectors[1]);
-        let distance2 = dist(&self.vectors[2]);
-
-        if distance0 >= 0.0 {
-            inside_points.push(&self.vectors[0]);
-        } else {
-            outside_points.push(&self.vectors[0]);
-        }
-        if distance1 >= 0.0 {
-            inside_points.push(&self.vectors[1]);
-        } else {
-            outside_points.push(&self.vectors[1]);
-        }
-        if distance2 >= 0.0 {
-            inside_points.push(&self.vectors[2]);
-        } else {
-            outside_points.push(&self.vectors[2]);
+        // Compute the signed distances of the triangle's vertices to the plane
+        let mut distances = [0.0; 3];
+        for (i, vector) in self.vectors.iter().enumerate() {
+            distances[i] = vector_dot_product(&plane_normal, vector) - plane_offset;
         }
 
-        // 0 points inside? Clip entire triangle
-        // 1 point inside? Create a new triangle
-        // 2 points inside? Create 2 new triangles
-        // 3 points inside? Don't clip
-        if inside_points.len() == 0 {
-            // Clip entire triangle
-            return vec![];
-        }
-        if inside_points.len() == 3 {
-            // Don't clip
-            return vec![self.clone()];
-        }
+        // Classify points as inside or outside
+        let mut inside_indices = [0; 3];
+        let mut outside_indices = [0; 3];
+        let mut num_inside = 0;
+        let mut num_outside = 0;
 
-        if inside_points.len() == 1 && outside_points.len() == 2 {
-            // Create a new triangle
-            let mut new_triangle = self.clone();
-
-            new_triangle.vectors[0] = inside_points[0].clone();
-            new_triangle.vectors[1] = intersect_plane(
-                &plane_position,
-                &plane_normal,
-                inside_points[0],
-                outside_points[0],
-            );
-            new_triangle.vectors[2] = intersect_plane(
-                &plane_position,
-                &plane_normal,
-                inside_points[0],
-                outside_points[1],
-            );
-
-            return vec![new_triangle];
-        } else if inside_points.len() == 2 && outside_points.len() == 1 {
-            // Create 2 new triangles
-            let mut new_triangle1 = self.clone();
-            let mut new_triangle2 = self.clone();
-
-            // Start with triangle 1
-            new_triangle1.vectors[0] = inside_points[0].clone();
-            new_triangle1.vectors[1] = inside_points[1].clone();
-            new_triangle1.vectors[2] = intersect_plane(
-                &plane_position,
-                &plane_normal,
-                inside_points[0],
-                outside_points[0],
-            );
-
-            // Continue with triangle 2
-            new_triangle2.vectors[0] = inside_points[1].clone();
-            new_triangle2.vectors[1] = new_triangle1.vectors[2].clone();
-            new_triangle2.vectors[2] = intersect_plane(
-                &plane_position,
-                &plane_normal,
-                inside_points[1],
-                outside_points[0],
-            );
-
-            return vec![new_triangle1, new_triangle2];
+        for (i, &distance) in distances.iter().enumerate() {
+            if distance >= 0.0 {
+                inside_indices[num_inside] = i;
+                num_inside += 1;
+            } else {
+                outside_indices[num_outside] = i;
+                num_outside += 1;
+            }
         }
 
-        panic!("Hier mogen we niet belanden!!!");
+        // Handle cases based on the number of points inside the plane
+        match num_inside {
+            0 => {
+                // No points inside: the triangle is fully clipped
+                vec![]
+            }
+            3 => {
+                // All points inside: return the triangle as is
+                vec![self.clone()]
+            }
+            1 => {
+                // One point inside: form a single new triangle
+                let inside = inside_indices[0];
+                let outside1 = outside_indices[0];
+                let outside2 = outside_indices[1];
+
+                let mut new_triangle = self.clone();
+
+                new_triangle.vectors[0] = self.vectors[inside].clone();
+                new_triangle.vectors[1] = intersect_plane(
+                    &plane_position,
+                    &plane_normal,
+                    &self.vectors[inside],
+                    &self.vectors[outside1],
+                );
+                new_triangle.vectors[2] = intersect_plane(
+                    &plane_position,
+                    &plane_normal,
+                    &self.vectors[inside],
+                    &self.vectors[outside2],
+                );
+
+                vec![new_triangle]
+            }
+            2 => {
+                // Two points inside: form two new triangles
+                let inside1 = inside_indices[0];
+                let inside2 = inside_indices[1];
+                let outside = outside_indices[0];
+
+                let mut new_triangle1 = self.clone();
+                let mut new_triangle2 = self.clone();
+
+                // First triangle
+                new_triangle1.vectors[0] = self.vectors[inside1].clone();
+                new_triangle1.vectors[1] = self.vectors[inside2].clone();
+                new_triangle1.vectors[2] = intersect_plane(
+                    &plane_position,
+                    &plane_normal,
+                    &self.vectors[inside1],
+                    &self.vectors[outside],
+                );
+
+                // Second triangle
+                new_triangle2.vectors[0] = self.vectors[inside2].clone();
+                new_triangle2.vectors[1] = new_triangle1.vectors[2].clone();
+                new_triangle2.vectors[2] = intersect_plane(
+                    &plane_position,
+                    &plane_normal,
+                    &self.vectors[inside2],
+                    &self.vectors[outside],
+                );
+
+                vec![new_triangle1, new_triangle2]
+            }
+            _ => panic!("Unexpected case in clip_against_plane!"),
+        }
     }
 }
 

@@ -1,12 +1,12 @@
 use core::engine::Engine;
 use sdl2::event::{Event, WindowEvent};
 use sdl2::keyboard::Keycode;
-use std::time::Duration;
+use std::time::Instant;
 
 mod core;
 
 fn main() -> Result<(), String> {
-    let mut engine: Engine = Engine::new("3D Engine", 400, 400);
+    let mut engine: Engine = Engine::new("3D Engine", 1280, 720);
 
     // Create the SDL event pump to handle events
     let mut event_pump = engine
@@ -16,7 +16,14 @@ fn main() -> Result<(), String> {
 
     // Main loop
     let mut running = true;
+    let mut last_frame_time = Instant::now();
     while running {
+        let now = Instant::now();
+        let frame_duration = now.duration_since(last_frame_time);
+        last_frame_time = now;
+        let realtime_fps = 1.0 / frame_duration.as_secs_f32();
+        engine.set_title(format!("3D Engine - {:.2?} FPS", realtime_fps));
+
         // Handle events
         for event in event_pump.poll_iter() {
             match event {
@@ -38,12 +45,9 @@ fn main() -> Result<(), String> {
         }
 
         // Update the engine (call user-defined update logic)
-        if !engine.on_user_update(0.016) {
+        if !engine.on_user_update() {
             running = false;
         }
-
-        // Simulate a frame delay (60 FPS)
-        std::thread::sleep(Duration::from_millis(16));
     }
 
     Ok(())
