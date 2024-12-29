@@ -22,7 +22,9 @@ fn main() -> Result<(), String> {
         let frame_duration = now.duration_since(last_frame_time);
         last_frame_time = now;
         let realtime_fps = 1.0 / frame_duration.as_secs_f32();
-        engine.set_title(format!("3D Engine - {:.2?} FPS", realtime_fps));
+        engine
+            .set_title(format!("3D Engine - {:.2?} FPS", realtime_fps))
+            .ok();
 
         // Handle events
         for event in event_pump.poll_iter() {

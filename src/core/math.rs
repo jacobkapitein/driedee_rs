@@ -1,9 +1,10 @@
 use super::vector_3d::Vector3D;
 
 pub fn interpolate(x_start: f32, y_start: f32, x_end: f32, y_end: f32) -> Vec<f32> {
-    let mut result = vec![];
+    let mut result = Vec::with_capacity((y_end - y_start).abs() as usize + 1); // Pre-allocate capacity
 
-    if (y_start - y_end).abs() < f32::EPSILON {
+    if (y_start - y_end).abs() < 1e-6 {
+        // Tolerance-based comparison
         result.push(x_start);
         return result;
     }
@@ -11,16 +12,11 @@ pub fn interpolate(x_start: f32, y_start: f32, x_end: f32, y_end: f32) -> Vec<f3
     let slope = (x_end - x_start) / (y_end - y_start);
     let mut x = x_start;
 
-    if y_end > y_start {
-        for _ in (y_start as i32..=y_end as i32).map(|v| v as f32) {
-            result.push(x);
-            x += slope;
-        }
-    } else {
-        for _ in (y_end as i32..=y_start as i32).rev().map(|v| v as f32) {
-            result.push(x);
-            x -= slope;
-        }
+    let step = if y_end > y_start { 1 } else { -1 };
+    let range = (y_start as i32..=y_end as i32).map(|v| v as f32);
+    for _ in range.step_by(step as usize) {
+        result.push(x);
+        x += slope * step as f32; // Update x according to the direction
     }
 
     result

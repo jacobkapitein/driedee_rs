@@ -1,6 +1,6 @@
 extern crate sdl2;
 
-use std::collections::VecDeque;
+use std::{collections::VecDeque, ffi::NulError};
 
 use sdl2::{
     keyboard::Keycode,
@@ -60,7 +60,7 @@ impl Engine {
             size_x,
             size_y,
             projection_matrix,
-            mesh_cube: Mesh::from_file("C:\\Users\\jacob\\Downloads\\mountains.obj"),
+            mesh_cube: Mesh::from_file("./teapot.obj"),
             camera: Vector3D::new(),
             look_direction: Vector3D::from_coords(0.0, 0.0, 1.0),
             r_yaw: 0.0,
@@ -253,15 +253,7 @@ impl Engine {
             &projected_triangle.vectors[1],
             &projected_triangle.vectors[2],
         ];
-        if ordered_points[1].y < ordered_points[0].y {
-            ordered_points.swap(1, 0);
-        }
-        if ordered_points[2].y < ordered_points[0].y {
-            ordered_points.swap(2, 0);
-        }
-        if ordered_points[2].y < ordered_points[1].y {
-            ordered_points.swap(2, 1)
-        }
+        ordered_points.sort_by(|a, b| a.y.partial_cmp(&b.y).unwrap());
 
         let mut x01 = interpolate(
             ordered_points[0].x,
@@ -381,7 +373,7 @@ impl Engine {
         self.size_y = new_y as u32;
     }
 
-    pub fn set_title(&mut self, new_title: String) {
-        self.canvas.window_mut().set_title(&new_title);
+    pub fn set_title(&mut self, new_title: String) -> Result<(), NulError> {
+        self.canvas.window_mut().set_title(&new_title)
     }
 }
