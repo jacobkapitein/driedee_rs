@@ -55,7 +55,7 @@ impl Engine {
             size_x,
             size_y,
             projection_matrix,
-            mesh_cube: Mesh::from_file("./teapot.obj"), //"./teapot.obj"
+            mesh_cube: Mesh::from_file("./teapot.obj"),
             theta: 0.0,
             camera: Vector3D::new(),
         }
