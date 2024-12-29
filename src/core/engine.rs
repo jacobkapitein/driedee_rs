@@ -25,6 +25,7 @@ pub struct Engine {
     mesh_cube: Mesh,
     theta: f32,
     camera: Vector3D,
+    look_direction: Vector3D,
 }
 
 impl Engine {
@@ -55,9 +56,10 @@ impl Engine {
             size_x,
             size_y,
             projection_matrix,
-            mesh_cube: Mesh::from_file("./teapot.obj"),
+            mesh_cube: Mesh::from_file("C:\\Users\\jacob\\Downloads\\axis.obj"),
             theta: 0.0,
             camera: Vector3D::new(),
+            look_direction: Vector3D::from_coords(0.0, 0.0, 1.0),
         }
     }
 
@@ -66,14 +68,20 @@ impl Engine {
         self.canvas.clear();
         self.canvas.set_draw_color(Color::RGB(255, 255, 255));
 
-        self.theta += 1.0 * elapsed_time;
+        // self.theta += 1.0 * elapsed_time;
         let rotation_z_matrix = Matrix4X4::from_rotation_z(self.theta * 0.5);
         let rotation_x_matrix = Matrix4X4::from_rotation_x(self.theta);
 
         let translation_matrix = Matrix4X4::from_translation(0.0, 0.0, 8.0);
 
-        let mut world_matrix: Matrix4X4 = rotation_z_matrix * rotation_x_matrix;
-        world_matrix = world_matrix * translation_matrix;
+        let mut world_matrix: Matrix4X4 = &rotation_z_matrix * &rotation_x_matrix;
+        world_matrix = &world_matrix * &translation_matrix;
+
+        let up_vector = Vector3D::from_coords(0.0, 1.0, 0.0);
+        let target_vector = &self.camera + &up_vector;
+
+        let camera_matrix = Matrix4X4::from_point_at(&self.camera, &target_vector, &up_vector);
+        let view_matrix = camera_matrix.quick_inverse();
 
         let mut triangles_to_draw: Vec<Triangle> = Vec::new();
 
@@ -81,21 +89,20 @@ impl Engine {
         for triangle in &self.mesh_cube.triangles {
             let mut projected_triangle = Triangle::new();
             let mut transformed_triangle = Triangle::new();
+            let mut viewed_triangle = Triangle::new();
 
-            transformed_triangle.vector3d[0] = world_matrix.multiply_vector(&triangle.vector3d[0]);
-            transformed_triangle.vector3d[1] = world_matrix.multiply_vector(&triangle.vector3d[1]);
-            transformed_triangle.vector3d[2] = world_matrix.multiply_vector(&triangle.vector3d[2]);
+            transformed_triangle.vectors[0] = &world_matrix * &triangle.vectors[0];
+            transformed_triangle.vectors[1] = &world_matrix * &triangle.vectors[1];
+            transformed_triangle.vectors[2] = &world_matrix * &triangle.vectors[2];
 
             // Calculate normals
-            let line1 =
-                transformed_triangle.vector3d[1].clone() - transformed_triangle.vector3d[0].clone();
-            let line2 =
-                transformed_triangle.vector3d[2].clone() - transformed_triangle.vector3d[0].clone();
+            let line1 = &transformed_triangle.vectors[1] - &transformed_triangle.vectors[0];
+            let line2 = &transformed_triangle.vectors[2] - &transformed_triangle.vectors[0];
 
             // Get cross product of lines to get normal to triangle surface
             let normal = vector_cross_product(&line1, &line2).from_normalise();
 
-            let camera_ray = transformed_triangle.vector3d[0].clone() - self.camera.clone();
+            let camera_ray = &transformed_triangle.vectors[0] - &self.camera;
 
             // Temporarily off for debugging purposes
             if vector_dot_product(&normal, &camera_ray) >= 0.0 {
@@ -109,52 +116,42 @@ impl Engine {
             projected_triangle.base_color =
                 self.get_color(dot_product, projected_triangle.base_color);
 
-            // Project triangles from 3D to 2D
-            projected_triangle.vector3d[0] = self
-                .projection_matrix
-                .multiply_vector(&transformed_triangle.vector3d[0]);
-            projected_triangle.vector3d[1] = self
-                .projection_matrix
-                .multiply_vector(&transformed_triangle.vector3d[1]);
-            projected_triangle.vector3d[2] = self
-                .projection_matrix
-                .multiply_vector(&transformed_triangle.vector3d[2]);
+            // Convert world space to view space
+            viewed_triangle.vectors[0] = &view_matrix * &transformed_triangle.vectors[0];
+            viewed_triangle.vectors[1] = &view_matrix * &transformed_triangle.vectors[1];
+            viewed_triangle.vectors[2] = &view_matrix * &transformed_triangle.vectors[2];
 
-            if projected_triangle.vector3d[0].w != 0.0 {
-                projected_triangle.vector3d[0] =
-                    projected_triangle.vector3d[0].clone() / projected_triangle.vector3d[0].w;
-            }
-            if projected_triangle.vector3d[1].w != 0.0 {
-                projected_triangle.vector3d[1] =
-                    projected_triangle.vector3d[1].clone() / projected_triangle.vector3d[1].w;
-            }
-            if projected_triangle.vector3d[2].w != 0.0 {
-                projected_triangle.vector3d[2] =
-                    projected_triangle.vector3d[2].clone() / projected_triangle.vector3d[2].w;
-            }
+            // Project triangles from 3D to 2D
+            projected_triangle.vectors[0] = &self.projection_matrix * &viewed_triangle.vectors[0];
+            projected_triangle.vectors[1] = &self.projection_matrix * &viewed_triangle.vectors[1];
+            projected_triangle.vectors[2] = &self.projection_matrix * &viewed_triangle.vectors[2];
+
+            projected_triangle.vectors[0] =
+                &projected_triangle.vectors[0] / projected_triangle.vectors[0].w;
+            projected_triangle.vectors[1] =
+                &projected_triangle.vectors[1] / projected_triangle.vectors[1].w;
+            projected_triangle.vectors[2] =
+                &projected_triangle.vectors[2] / projected_triangle.vectors[2].w;
 
             let offset_view = Vector3D::from_coords(1.0, 1.0, 0.0);
-            projected_triangle.vector3d[0] =
-                projected_triangle.vector3d[0].clone() + offset_view.clone();
-            projected_triangle.vector3d[1] =
-                projected_triangle.vector3d[1].clone() + offset_view.clone();
-            projected_triangle.vector3d[2] =
-                projected_triangle.vector3d[2].clone() + offset_view.clone();
+            projected_triangle.vectors[0] = &projected_triangle.vectors[0] + &offset_view;
+            projected_triangle.vectors[1] = &projected_triangle.vectors[1] + &offset_view;
+            projected_triangle.vectors[2] = &projected_triangle.vectors[2] + &offset_view;
 
-            projected_triangle.vector3d[0].x *= 0.5 * self.size_x as f32;
-            projected_triangle.vector3d[0].y *= 0.5 * self.size_y as f32;
-            projected_triangle.vector3d[1].x *= 0.5 * self.size_x as f32;
-            projected_triangle.vector3d[1].y *= 0.5 * self.size_y as f32;
-            projected_triangle.vector3d[2].x *= 0.5 * self.size_x as f32;
-            projected_triangle.vector3d[2].y *= 0.5 * self.size_y as f32;
+            projected_triangle.vectors[0].x *= 0.5 * self.size_x as f32;
+            projected_triangle.vectors[0].y *= 0.5 * self.size_y as f32;
+            projected_triangle.vectors[1].x *= 0.5 * self.size_x as f32;
+            projected_triangle.vectors[1].y *= 0.5 * self.size_y as f32;
+            projected_triangle.vectors[2].x *= 0.5 * self.size_x as f32;
+            projected_triangle.vectors[2].y *= 0.5 * self.size_y as f32;
 
             triangles_to_draw.push(projected_triangle);
         }
 
         // First, sort all the triangles
         triangles_to_draw.sort_by(|t1, t2| {
-            let z1 = (t1.vector3d[0].z + t1.vector3d[1].z + t1.vector3d[2].z) / 3.0;
-            let z2 = (t2.vector3d[0].z + t2.vector3d[1].z + t2.vector3d[2].z) / 3.0;
+            let z1 = (t1.vectors[0].z + t1.vectors[1].z + t1.vectors[2].z) / 3.0;
+            let z2 = (t2.vectors[0].z + t2.vectors[1].z + t2.vectors[2].z) / 3.0;
 
             z2.partial_cmp(&z1).unwrap_or(std::cmp::Ordering::Equal)
         });
@@ -185,9 +182,9 @@ impl Engine {
     pub fn draw_filled_triangle(&mut self, projected_triangle: &Triangle) {
         // Order projected points from top to bottom
         let mut ordered_points = vec![
-            &projected_triangle.vector3d[0],
-            &projected_triangle.vector3d[1],
-            &projected_triangle.vector3d[2],
+            &projected_triangle.vectors[0],
+            &projected_triangle.vectors[1],
+            &projected_triangle.vectors[2],
         ];
         if ordered_points[1].y < ordered_points[0].y {
             ordered_points.swap(1, 0);
@@ -257,20 +254,20 @@ impl Engine {
         self.canvas.set_draw_color(Color::RGB(255, 0, 0));
         self.canvas
             .draw_fline(
-                FPoint::new(triangle.vector3d[0].x, triangle.vector3d[0].y),
-                FPoint::new(triangle.vector3d[1].x, triangle.vector3d[1].y),
+                FPoint::new(triangle.vectors[0].x, triangle.vectors[0].y),
+                FPoint::new(triangle.vectors[1].x, triangle.vectors[1].y),
             )
             .expect("Error drawing line");
         self.canvas
             .draw_fline(
-                FPoint::new(triangle.vector3d[1].x, triangle.vector3d[1].y),
-                FPoint::new(triangle.vector3d[2].x, triangle.vector3d[2].y),
+                FPoint::new(triangle.vectors[1].x, triangle.vectors[1].y),
+                FPoint::new(triangle.vectors[2].x, triangle.vectors[2].y),
             )
             .expect("Error drawing line");
         self.canvas
             .draw_fline(
-                FPoint::new(triangle.vector3d[2].x, triangle.vector3d[2].y),
-                FPoint::new(triangle.vector3d[0].x, triangle.vector3d[0].y),
+                FPoint::new(triangle.vectors[2].x, triangle.vectors[2].y),
+                FPoint::new(triangle.vectors[0].x, triangle.vectors[0].y),
             )
             .expect("Error drawing line");
     }

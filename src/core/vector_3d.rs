@@ -44,35 +44,35 @@ impl FromStr for Vector3D {
     }
 }
 
-impl std::ops::Add for Vector3D {
-    type Output = Self;
+impl std::ops::Add for &Vector3D {
+    type Output = Vector3D;
 
     fn add(self, rhs: Self) -> Self::Output {
-        Self::from_coords(self.x + rhs.x, self.y + rhs.y, self.z + rhs.z)
+        Vector3D::from_coords(self.x + rhs.x, self.y + rhs.y, self.z + rhs.z)
     }
 }
 
-impl std::ops::Sub for Vector3D {
-    type Output = Self;
+impl std::ops::Sub for &Vector3D {
+    type Output = Vector3D;
 
     fn sub(self, rhs: Self) -> Self::Output {
-        Self::from_coords(self.x - rhs.x, self.y - rhs.y, self.z - rhs.z)
+        Vector3D::from_coords(self.x - rhs.x, self.y - rhs.y, self.z - rhs.z)
     }
 }
 
-impl std::ops::Div<f32> for Vector3D {
-    type Output = Self;
+impl std::ops::Div<f32> for &Vector3D {
+    type Output = Vector3D;
 
     fn div(self, rhs: f32) -> Self::Output {
-        Self::from_coords(self.x / rhs, self.y / rhs, self.z / rhs)
+        Vector3D::from_coords(self.x / rhs, self.y / rhs, self.z / rhs)
     }
 }
 
-impl std::ops::Mul<f32> for Vector3D {
-    type Output = Self;
+impl std::ops::Mul<f32> for &Vector3D {
+    type Output = Vector3D;
 
     fn mul(self, rhs: f32) -> Self::Output {
-        Self::from_coords(self.x * rhs, self.y * rhs, self.z * rhs)
+        Vector3D::from_coords(self.x * rhs, self.y * rhs, self.z * rhs)
     }
 }
 
