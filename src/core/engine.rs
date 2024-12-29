@@ -60,7 +60,7 @@ impl Engine {
             size_x,
             size_y,
             projection_matrix,
-            mesh_cube: Mesh::from_file("C:\\Users\\jacob\\Downloads\\mountains.obj"),
+            mesh_cube: Mesh::from_file("./teapot.obj"),
             theta: 0.0,
             camera: Vector3D::new(),
             look_direction: Vector3D::from_coords(0.0, 0.0, 1.0),
@@ -332,7 +332,7 @@ impl Engine {
 
                 for x in x_start..x_end {
                     self.canvas
-                        .draw_point(Point::new(x, y))
+                        .draw_point(Point::new(self.size_x as i32 - x, self.size_y as i32 - y))
                         .expect("Error drawing pixel");
                 }
             }
@@ -343,20 +343,38 @@ impl Engine {
         self.canvas.set_draw_color(Color::RGB(255, 0, 0));
         self.canvas
             .draw_fline(
-                FPoint::new(triangle.vectors[0].x, triangle.vectors[0].y),
-                FPoint::new(triangle.vectors[1].x, triangle.vectors[1].y),
+                FPoint::new(
+                    self.size_x as f32 - triangle.vectors[0].x,
+                    self.size_y as f32 - triangle.vectors[0].y,
+                ),
+                FPoint::new(
+                    self.size_x as f32 - triangle.vectors[1].x,
+                    self.size_y as f32 - triangle.vectors[1].y,
+                ),
             )
             .expect("Error drawing line");
         self.canvas
             .draw_fline(
-                FPoint::new(triangle.vectors[1].x, triangle.vectors[1].y),
-                FPoint::new(triangle.vectors[2].x, triangle.vectors[2].y),
+                FPoint::new(
+                    self.size_x as f32 - triangle.vectors[1].x,
+                    self.size_y as f32 - triangle.vectors[1].y,
+                ),
+                FPoint::new(
+                    self.size_x as f32 - triangle.vectors[2].x,
+                    self.size_y as f32 - triangle.vectors[2].y,
+                ),
             )
             .expect("Error drawing line");
         self.canvas
             .draw_fline(
-                FPoint::new(triangle.vectors[2].x, triangle.vectors[2].y),
-                FPoint::new(triangle.vectors[0].x, triangle.vectors[0].y),
+                FPoint::new(
+                    self.size_x as f32 - triangle.vectors[2].x,
+                    self.size_y as f32 - triangle.vectors[2].y,
+                ),
+                FPoint::new(
+                    self.size_x as f32 - triangle.vectors[0].x,
+                    self.size_y as f32 - triangle.vectors[0].y,
+                ),
             )
             .expect("Error drawing line");
     }
