@@ -1,6 +1,7 @@
 extern crate sdl2;
 
 use sdl2::{
+    keyboard::Keycode,
     pixels::Color,
     rect::{FPoint, Point},
     render::Canvas,
@@ -72,13 +73,13 @@ impl Engine {
         let rotation_z_matrix = Matrix4X4::from_rotation_z(self.theta * 0.5);
         let rotation_x_matrix = Matrix4X4::from_rotation_x(self.theta);
 
-        let translation_matrix = Matrix4X4::from_translation(0.0, 0.0, 8.0);
+        let translation_matrix = Matrix4X4::from_translation(0.0, 0.0, 16.0);
 
         let mut world_matrix: Matrix4X4 = &rotation_z_matrix * &rotation_x_matrix;
         world_matrix = &world_matrix * &translation_matrix;
 
         let up_vector = Vector3D::from_coords(0.0, 1.0, 0.0);
-        let target_vector = &self.camera + &up_vector;
+        let target_vector = &self.camera + &self.look_direction;
 
         let camera_matrix = Matrix4X4::from_point_at(&self.camera, &target_vector, &up_vector);
         let view_matrix = camera_matrix.quick_inverse();
@@ -270,5 +271,13 @@ impl Engine {
                 FPoint::new(triangle.vectors[0].x, triangle.vectors[0].y),
             )
             .expect("Error drawing line");
+    }
+
+    pub fn move_camera(&mut self, key: Keycode) {
+        match key {
+            Keycode::UP => self.camera.y += 8.0,
+            Keycode::DOWN => self.camera.y -= 8.0,
+            _ => {}
+        }
     }
 }

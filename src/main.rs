@@ -25,6 +25,10 @@ fn main() -> Result<(), String> {
                     keycode: Some(Keycode::Escape),
                     ..
                 } => running = false, // Exit on Escape key
+                Event::KeyDown {
+                    keycode: Some(keycode),
+                    ..
+                } => engine.move_camera(keycode),
                 _ => {}
             }
         }
