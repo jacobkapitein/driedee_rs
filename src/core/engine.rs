@@ -1,6 +1,6 @@
 extern crate sdl2;
 
-use std::{collections::VecDeque, ffi::NulError};
+use std::{collections::VecDeque, ffi::NulError, time::Instant};
 
 use sdl2::{
     keyboard::Keycode,
@@ -44,7 +44,11 @@ impl Engine {
             .build()
             .expect("Error creating window");
 
-        let canvas = window.into_canvas().build().expect("Error creating canvas");
+        let canvas = window
+            .into_canvas()
+            .accelerated()
+            .build()
+            .expect("Error creating canvas");
 
         let near_plane: f32 = 0.1;
         let far_plane: f32 = 1000.0;
@@ -68,11 +72,13 @@ impl Engine {
     }
 
     pub fn on_user_update(&mut self) -> bool {
+        let on_user_update_start = Instant::now();
+        let basic_start = Instant::now();
         self.canvas.set_draw_color(Color::RGB(0, 0, 0));
         self.canvas.clear();
         self.canvas.set_draw_color(Color::RGB(255, 255, 255));
 
-        let translation_matrix = Matrix4X4::from_translation(0.0, 0.0, 16.0);
+        let translation_matrix = Matrix4X4::from_translation(0.0, 0.0, 4.0);
 
         let world_matrix = &Matrix4X4::from_identity() * &translation_matrix;
 
@@ -89,7 +95,9 @@ impl Engine {
 
         let mut triangles_to_draw: Vec<Triangle> = Vec::new();
 
+        // println!("Basic start took\t\t{:.2?}", basic_start.elapsed());
         // Do all transformations
+        let transformations_start = Instant::now();
         for triangle in &self.mesh_cube.triangles {
             let mut transformed_triangle = Triangle::new();
             let mut viewed_triangle = Triangle::new();
@@ -163,7 +171,12 @@ impl Engine {
                 triangles_to_draw.push(projected_triangle);
             }
         }
+        // println!(
+        //     "Transformations took\t\t{:.2?}",
+        //     transformations_start.elapsed()
+        // );
 
+        let sorting_start = Instant::now();
         // First, sort all the triangles
         triangles_to_draw.sort_by(|t1, t2| {
             let z1 = (t1.vectors[0].z + t1.vectors[1].z + t1.vectors[2].z) / 3.0;
@@ -177,29 +190,30 @@ impl Engine {
                 }
             })
         });
+        // println!("Sorting took\t\t\t{:.2?}", sorting_start.elapsed());
 
         // Rasterize everything to the screen
+        // Define clipping planes
+        let clipping_planes = [
+            (
+                Vector3D::from_coords(0.0, 0.0, 0.0),
+                Vector3D::from_coords(0.0, 1.0, 0.0),
+            ), // Top
+            (
+                Vector3D::from_coords(0.0, self.size_y as f32 - 1.0, 0.0),
+                Vector3D::from_coords(0.0, -1.0, 0.0),
+            ), // Bottom
+            (
+                Vector3D::from_coords(0.0, 0.0, 0.0),
+                Vector3D::from_coords(1.0, 0.0, 0.0),
+            ), // Left
+            (
+                Vector3D::from_coords(self.size_x as f32 - 1.0, 0.0, 0.0),
+                Vector3D::from_coords(-1.0, 0.0, 0.0),
+            ), // Right
+        ];
+        let rasterization_start = Instant::now();
         for triangle_to_draw in triangles_to_draw {
-            // Define clipping planes
-            let clipping_planes = [
-                (
-                    Vector3D::from_coords(0.0, 0.0, 0.0),
-                    Vector3D::from_coords(0.0, 1.0, 0.0),
-                ), // Top
-                (
-                    Vector3D::from_coords(0.0, self.size_y as f32 - 1.0, 0.0),
-                    Vector3D::from_coords(0.0, -1.0, 0.0),
-                ), // Bottom
-                (
-                    Vector3D::from_coords(0.0, 0.0, 0.0),
-                    Vector3D::from_coords(1.0, 0.0, 0.0),
-                ), // Left
-                (
-                    Vector3D::from_coords(self.size_x as f32 - 1.0, 0.0, 0.0),
-                    Vector3D::from_coords(-1.0, 0.0, 0.0),
-                ), // Right
-            ];
-
             let mut triangle_queue: VecDeque<Triangle> = VecDeque::new();
             triangle_queue.push_back(triangle_to_draw);
 
@@ -227,9 +241,17 @@ impl Engine {
                 // self.draw_wireframe(&final_triangle);
             }
         }
+        // println!("Rasterizing took\t\t{:.2?}", rasterization_start.elapsed());
 
+        let presenting_start = Instant::now();
         // Finally, show the buffer
         self.canvas.present();
+        // println!("Presenting took\t\t\t{:.2?}", presenting_start.elapsed());
+
+        // println!(
+        //     "On user update took\t{:.2?}",
+        //     on_user_update_start.elapsed()
+        // );
 
         true
     }
@@ -247,55 +269,48 @@ impl Engine {
     }
 
     pub fn draw_filled_triangle(&mut self, projected_triangle: &Triangle) {
-        // Order projected points from top to bottom
-        let mut ordered_points = vec![
-            &projected_triangle.vectors[0],
-            &projected_triangle.vectors[1],
-            &projected_triangle.vectors[2],
-        ];
+        // Order projected points from top to bottom by their `y` value
+        let mut ordered_points = projected_triangle.vectors.clone();
         ordered_points.sort_by(|a, b| a.y.partial_cmp(&b.y).unwrap());
 
-        let mut x01 = interpolate(
-            ordered_points[0].x,
-            ordered_points[0].y,
-            ordered_points[1].x,
-            ordered_points[1].y,
-        );
-        let mut x12 = interpolate(
-            ordered_points[1].x,
-            ordered_points[1].y,
-            ordered_points[2].x,
-            ordered_points[2].y,
-        );
-        let x02 = interpolate(
-            ordered_points[0].x,
-            ordered_points[0].y,
-            ordered_points[2].x,
-            ordered_points[2].y,
-        );
+        // Deconstruct the sorted points
+        let p0 = &ordered_points[0];
+        let p1 = &ordered_points[1];
+        let p2 = &ordered_points[2];
 
+        // Interpolate x-coordinates along the edges
+        let x01 = interpolate(p0.x, p0.y, p1.x, p1.y);
+        let x12 = interpolate(p1.x, p1.y, p2.x, p2.y);
+        let x02 = interpolate(p0.x, p0.y, p2.x, p2.y);
+
+        // Merge x01 and x12 for the full edge from p0 to p2
+        let mut x_full = x01;
+        x_full.pop(); // Avoid duplicating the middle point
+        x_full.extend(x12);
+
+        // Determine left and right edges based on midpoint comparison
         let x_left;
         let x_right;
+        let mid_index = x02.len() / 2;
 
-        // Remove last
-        x01.pop();
-        let mut x012 = x01.clone();
-        x012.append(&mut x12);
-
-        let m = x02.len() / 2;
-        if x02[m] < x012[m] {
+        if x02[mid_index] < x_full[mid_index] {
             x_left = x02;
-            x_right = x012;
+            x_right = x_full;
         } else {
-            x_left = x012;
+            x_left = x_full;
             x_right = x02;
         }
 
+        // Draw the triangle
         self.canvas.set_draw_color(projected_triangle.base_color);
-        for y in (ordered_points[0].y as i32)..(ordered_points[2].y as i32) {
-            let index = (y as usize).wrapping_sub(ordered_points[0].y as usize);
 
-            // Check if the index is within bounds
+        // Ensure we stay within bounds of the interpolation arrays
+        let start_y = p0.y as i32;
+        let end_y = p2.y as i32;
+
+        for y in start_y..end_y {
+            let index = (y - start_y) as usize;
+
             if index < x_left.len() && index < x_right.len() {
                 let x_start = x_left[index] as i32;
                 let x_end = x_right[index] as i32;
