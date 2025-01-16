@@ -10,6 +10,7 @@ This code is in no way efficient, fast or good. But it does work.
 
 - Install Rust: https://www.rust-lang.org/
 - Run `cargo run` in the terminal, in the root folder of this project
+    - Note: You might need an additional C compiler to build the dependencies
 
 First time running might take a while to install the dependencies. After that, each run should be pretty quick.
 
