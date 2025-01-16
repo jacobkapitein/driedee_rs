@@ -1,7 +1,8 @@
 use core::engine::Engine;
 use sdl2::event::{Event, WindowEvent};
 use sdl2::keyboard::Keycode;
-use std::time::Instant;
+use std::time::{Instant, Duration};
+use std::thread::sleep;
 
 mod core;
 
@@ -13,6 +14,10 @@ fn main() -> Result<(), String> {
         .sdl_context
         .event_pump()
         .expect("Error creating event pump");
+
+    // Set the target frame rate (FPS)
+    let target_fps = 60;
+    let target_frame_duration = Duration::from_secs_f32(1.0 / target_fps as f32);
 
     // Main loop
     let mut running = true;
@@ -49,6 +54,13 @@ fn main() -> Result<(), String> {
         // Update the engine (call user-defined update logic)
         if !engine.on_user_update() {
             running = false;
+        }
+
+        // Frame delay to limit FPS
+        let frame_time = Instant::now().duration_since(last_frame_time);
+        if frame_time < target_frame_duration {
+            let sleep_duration = target_frame_duration - frame_time;
+            sleep(sleep_duration);
         }
     }
 
