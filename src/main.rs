@@ -80,7 +80,7 @@ fn set_commands() -> ArgMatches {
             Arg::new("max-fps")
                 .long("max-fps")
                 .value_parser(clap::value_parser!(f32))
-                .default_value("60") // Default FPS if not provided
+                .default_value("60")
                 .help("Sets the maximum frames per second"),
         )
         .get_matches()
