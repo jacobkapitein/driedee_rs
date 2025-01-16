@@ -10,7 +10,12 @@ mod core;
 fn main() -> Result<(), String> {
     let matches = set_commands();
 
-    let mut engine: Engine = Engine::new("3D Engine", 1280, 720);
+    let object_to_load = matches
+        .get_one::<String>("object")
+        .cloned()
+        .unwrap_or(String::from("./teapot.obj"));
+
+    let mut engine: Engine = Engine::new("3D Engine", 1280, 720, object_to_load.as_str());
 
     // Create the SDL event pump to handle events
     let mut event_pump = engine
@@ -82,6 +87,13 @@ fn set_commands() -> ArgMatches {
                 .value_parser(clap::value_parser!(f32))
                 .default_value("60")
                 .help("Sets the maximum frames per second"),
+        )
+        .arg(
+            Arg::new("object")
+            .long("object")
+            .value_parser(clap::value_parser!(String))
+            .default_value("./teapot.obj")
+            .help("Load in a different obj file"),
         )
         .get_matches()
 }

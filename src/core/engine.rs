@@ -25,14 +25,14 @@ pub struct Engine {
     size_x: u32,
     size_y: u32,
     projection_matrix: Matrix4X4,
-    mesh_cube: Mesh,
+    mesh: Mesh,
     camera: Vector3D,
     look_direction: Vector3D,
     r_yaw: f32,
 }
 
 impl Engine {
-    pub fn new(title: &str, size_x: u32, size_y: u32) -> Engine {
+    pub fn new(title: &str, size_x: u32, size_y: u32, object_to_load: &str) -> Engine {
         let sdl_context = sdl2::init().expect("Error creating SDL context");
         let video_subsystem = sdl_context.video().expect("Error creating video subsystem");
 
@@ -64,7 +64,7 @@ impl Engine {
             size_x,
             size_y,
             projection_matrix,
-            mesh_cube: Mesh::from_file("./teapot.obj"),
+            mesh: Mesh::from_file(object_to_load),
             camera: Vector3D::new(),
             look_direction: Vector3D::from_coords(0.0, 0.0, 1.0),
             r_yaw: 0.0,
@@ -95,10 +95,8 @@ impl Engine {
 
         let mut triangles_to_draw: Vec<Triangle> = Vec::new();
 
-        // println!("Basic start took\t\t{:.2?}", basic_start.elapsed());
         // Do all transformations
-        let transformations_start = Instant::now();
-        for triangle in &self.mesh_cube.triangles {
+        for triangle in &self.mesh.triangles {
             let mut transformed_triangle = Triangle::new();
             let mut viewed_triangle = Triangle::new();
 
@@ -171,12 +169,7 @@ impl Engine {
                 triangles_to_draw.push(projected_triangle);
             }
         }
-        // println!(
-        //     "Transformations took\t\t{:.2?}",
-        //     transformations_start.elapsed()
-        // );
 
-        let sorting_start = Instant::now();
         // First, sort all the triangles
         triangles_to_draw.sort_by(|t1, t2| {
             let z1 = (t1.vectors[0].z + t1.vectors[1].z + t1.vectors[2].z) / 3.0;
@@ -190,7 +183,6 @@ impl Engine {
                 }
             })
         });
-        // println!("Sorting took\t\t\t{:.2?}", sorting_start.elapsed());
 
         // Rasterize everything to the screen
         // Define clipping planes
@@ -212,7 +204,6 @@ impl Engine {
                 Vector3D::from_coords(-1.0, 0.0, 0.0),
             ), // Right
         ];
-        let rasterization_start = Instant::now();
         for triangle_to_draw in triangles_to_draw {
             let mut triangle_queue: VecDeque<Triangle> = VecDeque::new();
             triangle_queue.push_back(triangle_to_draw);
@@ -241,17 +232,10 @@ impl Engine {
                 // self.draw_wireframe(&final_triangle);
             }
         }
-        // println!("Rasterizing took\t\t{:.2?}", rasterization_start.elapsed());
 
         let presenting_start = Instant::now();
         // Finally, show the buffer
         self.canvas.present();
-        // println!("Presenting took\t\t\t{:.2?}", presenting_start.elapsed());
-
-        // println!(
-        //     "On user update took\t{:.2?}",
-        //     on_user_update_start.elapsed()
-        // );
 
         true
     }
