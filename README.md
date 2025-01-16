@@ -19,11 +19,8 @@ Again, this is just for learning, and optimization is really bad.
 
 Controls are a bit funky, but they work.
 
-- W: Move forward
-- S: Move backward
-- D: Turn right
-- A: Turn left
+- Use WASD to move
 - Arrow up: Move up
 - Arrow down: Move down
-- Arrow left: buggy move left
-- Arrow right: buggy move right
+- Arrow left: turn left
+- Arrow right: turn right

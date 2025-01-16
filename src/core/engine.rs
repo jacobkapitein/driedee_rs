@@ -369,16 +369,30 @@ impl Engine {
         match key {
             Keycode::UP => self.camera.y += 8.0 * elapsed_time,
             Keycode::DOWN => self.camera.y -= 8.0 * elapsed_time,
-            Keycode::LEFT => self.camera.x += 8.0 * elapsed_time,
-            Keycode::RIGHT => self.camera.x -= 8.0 * elapsed_time,
+            Keycode::LEFT => self.r_yaw -= 8.0 * elapsed_time,
+            Keycode::RIGHT => self.r_yaw += 8.0 * elapsed_time,
             Keycode::W => {
                 self.camera = &self.camera + &vector_forward;
             }
             Keycode::S => {
                 self.camera = &self.camera - &vector_forward;
             }
-            Keycode::D => self.r_yaw += 8.0 * elapsed_time,
-            Keycode::A => self.r_yaw -= 8.0 * elapsed_time,
+            Keycode::D => {
+                let target_vector = Vector3D::from_coords(1.0, 0.0, 0.0);
+                let camera_rotation_matrix = Matrix4X4::from_rotation_y(self.r_yaw);
+        
+                let right_from_look_direction_direction = &camera_rotation_matrix * &target_vector;
+
+                self.camera = &self.camera - &(&right_from_look_direction_direction * (8.0 * elapsed_time));
+            }
+            Keycode::A => {
+                let target_vector = Vector3D::from_coords(-1.0, 0.0, 0.0);
+                let camera_rotation_matrix = Matrix4X4::from_rotation_y(self.r_yaw);
+        
+                let left_from_look_direction_direction = &camera_rotation_matrix * &target_vector;
+
+                self.camera = &self.camera - &(&left_from_look_direction_direction * (8.0 * elapsed_time));
+            }
             _ => {}
         }
     }
