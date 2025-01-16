@@ -30,6 +30,6 @@ Controls are a bit funky, but they work.
 
 I am really thankful for [javidx9](https://www.youtube.com/@javidx9) for making a great tutorial series! I have ported his project to Rust and improved some stuff, without relying on the libraries he provided.
 
-Furthermore, I am really proud that this engine is performing pretty well. For some reason, it's running WAY faster on my 8 year old Arch Linux laptop (Intel Core i7-8550U) than my modern Windows 11 PC (AMD Ryzen 7 3800x). My thought is that the Intel CPU actually has graphics capabilities, while my AMD CPU doesn't. So the AMD CPU probably can't work as good with OpenGL rendering as the Intel CPU, even though I am only drawing pixels directly on the screen.
+Furthermore, I am really proud that this engine is performing pretty well. For some reason, it's running WAY faster on my 8 year old Arch Linux laptop (Intel Core i7-8550U) than my modern Windows 11 PC (AMD Ryzen 7 3800x). My thought is that the Intel CPU actually has graphics capabilities, while my AMD CPU doesn't. So the AMD CPU probably can't work as good with OpenGL rendering as the Intel CPU, even though I am only drawing pixels directly on the screen and the rendering is done by software.
 
 Just to give an idea: it's running the `mountains.obj` scene at 40 fps on both my old laptop and my modern PC.
