@@ -65,7 +65,7 @@ impl Engine {
             size_x,
             size_y,
             projection_matrix,
-            mesh: Mesh::from_cube(), //Mesh::from_file(object_to_load),
+            mesh: Mesh::from_file(object_to_load),
             camera: Vector3D::new(),
             look_direction: Vector3D::from_coords(0.0, 0.0, 1.0),
             r_yaw: 0.0,
