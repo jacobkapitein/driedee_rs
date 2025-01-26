@@ -29,7 +29,7 @@ fn main() -> Result<(), String> {
     let target_frame_duration = Duration::from_secs_f32(1.0 / target_fps);
 
     let mut pressed_keys: HashSet<Keycode> = HashSet::new();
-    let sensitivity = 0.1;
+    let sensitivity = 0.2;
     let mouse_util = engine.sdl_context.mouse();
     mouse_util.set_relative_mouse_mode(true);
     mouse_util.show_cursor(false);
