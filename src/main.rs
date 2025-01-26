@@ -68,11 +68,7 @@ fn main() -> Result<(), String> {
                     pressed_keys.remove(&keycode);
                 }
                 Event::MouseMotion { xrel, yrel, .. } => {
-                    engine.rotate_camera(
-                        xrel as f32 * sensitivity,
-                        yrel as f32 * sensitivity,
-                        last_frame_duration,
-                    );
+                    engine.rotate_camera(xrel as f32 * sensitivity, yrel as f32 * sensitivity);
                 }
                 Event::Window {
                     win_event: WindowEvent::Resized(new_x, new_y),

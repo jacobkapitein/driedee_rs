@@ -65,7 +65,7 @@ impl Engine {
             size_x,
             size_y,
             projection_matrix,
-            mesh: Mesh::from_file(object_to_load),
+            mesh: Mesh::from_cube(), //Mesh::from_file(object_to_load),
             camera: Vector3D::new(),
             look_direction: Vector3D::from_coords(0.0, 0.0, 1.0),
             r_yaw: 0.0,
@@ -383,9 +383,9 @@ impl Engine {
         }
     }
 
-    pub fn rotate_camera(&mut self, rel_x: f32, rel_y: f32, elapsed_time: f32) {
-        self.r_yaw += rel_x * elapsed_time;
-        self.u_pitch += rel_y * elapsed_time;
+    pub fn rotate_camera(&mut self, rel_x: f32, rel_y: f32) {
+        self.r_yaw += rel_x * 0.01;
+        self.u_pitch += rel_y * 0.01;
         let max_pitch = (std::f32::consts::TAU / 4.0) - 0.01;
 
         if self.u_pitch > max_pitch {
