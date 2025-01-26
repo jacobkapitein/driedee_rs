@@ -1,9 +1,10 @@
-use core::engine::Engine;
 use clap::{Arg, ArgMatches, Command};
+use core::engine::Engine;
 use sdl2::event::{Event, WindowEvent};
 use sdl2::keyboard::Keycode;
-use std::time::{Instant, Duration};
+use std::collections::HashSet;
 use std::thread::sleep;
+use std::time::{Duration, Instant};
 
 mod core;
 
@@ -24,11 +25,10 @@ fn main() -> Result<(), String> {
         .expect("Error creating event pump");
 
     // Set the target frame rate (FPS)
-    let target_fps = matches
-        .get_one::<f32>("max-fps")
-        .cloned()
-        .unwrap_or(60.0);
+    let target_fps = matches.get_one::<f32>("max-fps").cloned().unwrap_or(60.0);
     let target_frame_duration = Duration::from_secs_f32(1.0 / target_fps);
+
+    let mut pressed_keys: HashSet<Keycode> = HashSet::new();
 
     // Main loop
     let mut running = true;
@@ -53,13 +53,46 @@ fn main() -> Result<(), String> {
                 Event::KeyDown {
                     keycode: Some(keycode),
                     ..
-                } => engine.move_camera(keycode, 0.016),
+                } => {
+                    pressed_keys.insert(keycode);
+                } //engine.move_camera(keycode, 0.016),
+                Event::KeyUp {
+                    keycode: Some(keycode),
+                    ..
+                } => {
+                    pressed_keys.remove(&keycode);
+                }
                 Event::Window {
                     win_event: WindowEvent::Resized(new_x, new_y),
                     ..
                 } => engine.resize_window(new_x, new_y),
                 _ => {}
             }
+        }
+
+        if pressed_keys.contains(&Keycode::W) {
+            engine.move_camera(Keycode::W, 0.016);
+        }
+        if pressed_keys.contains(&Keycode::S) {
+            engine.move_camera(Keycode::S, 0.016);
+        }
+        if pressed_keys.contains(&Keycode::A) {
+            engine.move_camera(Keycode::A, 0.016);
+        }
+        if pressed_keys.contains(&Keycode::D) {
+            engine.move_camera(Keycode::D, 0.016);
+        }
+        if pressed_keys.contains(&Keycode::UP) {
+            engine.move_camera(Keycode::UP, 0.016);
+        }
+        if pressed_keys.contains(&Keycode::DOWN) {
+            engine.move_camera(Keycode::DOWN, 0.016);
+        }
+        if pressed_keys.contains(&Keycode::LEFT) {
+            engine.move_camera(Keycode::LEFT, 0.016);
+        }
+        if pressed_keys.contains(&Keycode::RIGHT) {
+            engine.move_camera(Keycode::RIGHT, 0.016);
         }
 
         // Update the engine (call user-defined update logic)
@@ -90,10 +123,10 @@ fn set_commands() -> ArgMatches {
         )
         .arg(
             Arg::new("object")
-            .long("object")
-            .value_parser(clap::value_parser!(String))
-            .default_value("./teapot.obj")
-            .help("Load in a different obj file"),
+                .long("object")
+                .value_parser(clap::value_parser!(String))
+                .default_value("./teapot.obj")
+                .help("Load in a different obj file"),
         )
         .get_matches()
 }
