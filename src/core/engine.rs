@@ -1,6 +1,6 @@
 extern crate sdl2;
 
-use std::{collections::VecDeque, ffi::NulError, time::Instant};
+use std::{collections::VecDeque, ffi::NulError};
 
 use sdl2::{
     keyboard::Keycode,
@@ -29,6 +29,7 @@ pub struct Engine {
     camera: Vector3D,
     look_direction: Vector3D,
     r_yaw: f32,
+    u_pitch: f32,
 }
 
 impl Engine {
@@ -68,12 +69,11 @@ impl Engine {
             camera: Vector3D::new(),
             look_direction: Vector3D::from_coords(0.0, 0.0, 1.0),
             r_yaw: 0.0,
+            u_pitch: 0.0,
         }
     }
 
     pub fn on_user_update(&mut self) -> bool {
-        let on_user_update_start = Instant::now();
-        let basic_start = Instant::now();
         self.canvas.set_draw_color(Color::RGB(0, 0, 0));
         self.canvas.clear();
         self.canvas.set_draw_color(Color::RGB(255, 255, 255));
@@ -85,7 +85,8 @@ impl Engine {
         let up_vector = Vector3D::from_coords(0.0, 1.0, 0.0);
         let mut target_vector = Vector3D::from_coords(0.0, 0.0, 1.0);
 
-        let camera_rotation_matrix = Matrix4X4::from_rotation_y(self.r_yaw);
+        let camera_rotation_matrix =
+            &Matrix4X4::from_rotation_x(self.u_pitch) * &Matrix4X4::from_rotation_y(self.r_yaw);
 
         self.look_direction = &camera_rotation_matrix * &target_vector;
         target_vector = &self.camera + &self.look_direction;
@@ -233,7 +234,6 @@ impl Engine {
             }
         }
 
-        let presenting_start = Instant::now();
         // Finally, show the buffer
         self.canvas.present();
 
@@ -364,20 +364,34 @@ impl Engine {
             Keycode::D => {
                 let target_vector = Vector3D::from_coords(1.0, 0.0, 0.0);
                 let camera_rotation_matrix = Matrix4X4::from_rotation_y(self.r_yaw);
-        
+
                 let right_from_look_direction_direction = &camera_rotation_matrix * &target_vector;
 
-                self.camera = &self.camera - &(&right_from_look_direction_direction * (8.0 * elapsed_time));
+                self.camera =
+                    &self.camera - &(&right_from_look_direction_direction * (8.0 * elapsed_time));
             }
             Keycode::A => {
                 let target_vector = Vector3D::from_coords(-1.0, 0.0, 0.0);
                 let camera_rotation_matrix = Matrix4X4::from_rotation_y(self.r_yaw);
-        
+
                 let left_from_look_direction_direction = &camera_rotation_matrix * &target_vector;
 
-                self.camera = &self.camera - &(&left_from_look_direction_direction * (8.0 * elapsed_time));
+                self.camera =
+                    &self.camera - &(&left_from_look_direction_direction * (8.0 * elapsed_time));
             }
             _ => {}
+        }
+    }
+
+    pub fn rotate_camera(&mut self, rel_x: f32, rel_y: f32, elapsed_time: f32) {
+        self.r_yaw += rel_x * elapsed_time;
+        self.u_pitch += rel_y * elapsed_time;
+        let max_pitch = (std::f32::consts::TAU / 4.0) - 0.01;
+
+        if self.u_pitch > max_pitch {
+            self.u_pitch = max_pitch
+        } else if self.u_pitch < -max_pitch {
+            self.u_pitch = -max_pitch
         }
     }
 

@@ -29,10 +29,15 @@ fn main() -> Result<(), String> {
     let target_frame_duration = Duration::from_secs_f32(1.0 / target_fps);
 
     let mut pressed_keys: HashSet<Keycode> = HashSet::new();
+    let sensitivity = 0.1;
+    let mouse_util = engine.sdl_context.mouse();
+    mouse_util.set_relative_mouse_mode(true);
+    mouse_util.show_cursor(false);
 
     // Main loop
     let mut running = true;
     let mut last_frame_time = Instant::now();
+    let mut last_frame_duration = 0.016;
     while running {
         let now = Instant::now();
         let frame_duration = now.duration_since(last_frame_time);
@@ -55,12 +60,19 @@ fn main() -> Result<(), String> {
                     ..
                 } => {
                     pressed_keys.insert(keycode);
-                } //engine.move_camera(keycode, 0.016),
+                }
                 Event::KeyUp {
                     keycode: Some(keycode),
                     ..
                 } => {
                     pressed_keys.remove(&keycode);
+                }
+                Event::MouseMotion { xrel, yrel, .. } => {
+                    engine.rotate_camera(
+                        xrel as f32 * sensitivity,
+                        yrel as f32 * sensitivity,
+                        last_frame_duration,
+                    );
                 }
                 Event::Window {
                     win_event: WindowEvent::Resized(new_x, new_y),
@@ -71,28 +83,28 @@ fn main() -> Result<(), String> {
         }
 
         if pressed_keys.contains(&Keycode::W) {
-            engine.move_camera(Keycode::W, 0.016);
+            engine.move_camera(Keycode::W, last_frame_duration);
         }
         if pressed_keys.contains(&Keycode::S) {
-            engine.move_camera(Keycode::S, 0.016);
+            engine.move_camera(Keycode::S, last_frame_duration);
         }
         if pressed_keys.contains(&Keycode::A) {
-            engine.move_camera(Keycode::A, 0.016);
+            engine.move_camera(Keycode::A, last_frame_duration);
         }
         if pressed_keys.contains(&Keycode::D) {
-            engine.move_camera(Keycode::D, 0.016);
+            engine.move_camera(Keycode::D, last_frame_duration);
         }
         if pressed_keys.contains(&Keycode::UP) {
-            engine.move_camera(Keycode::UP, 0.016);
+            engine.move_camera(Keycode::UP, last_frame_duration);
         }
         if pressed_keys.contains(&Keycode::DOWN) {
-            engine.move_camera(Keycode::DOWN, 0.016);
+            engine.move_camera(Keycode::DOWN, last_frame_duration);
         }
         if pressed_keys.contains(&Keycode::LEFT) {
-            engine.move_camera(Keycode::LEFT, 0.016);
+            engine.move_camera(Keycode::LEFT, last_frame_duration);
         }
         if pressed_keys.contains(&Keycode::RIGHT) {
-            engine.move_camera(Keycode::RIGHT, 0.016);
+            engine.move_camera(Keycode::RIGHT, last_frame_duration);
         }
 
         // Update the engine (call user-defined update logic)
@@ -106,6 +118,7 @@ fn main() -> Result<(), String> {
             let sleep_duration = target_frame_duration - frame_time;
             sleep(sleep_duration);
         }
+        last_frame_duration = duration_as_f32(frame_time);
     }
 
     Ok(())
@@ -129,4 +142,10 @@ fn set_commands() -> ArgMatches {
                 .help("Load in a different obj file"),
         )
         .get_matches()
+}
+
+fn duration_as_f32(duration: Duration) -> f32 {
+    let seconds = duration.as_secs() as f32;
+    let nanos = duration.subsec_nanos() as f32;
+    seconds + (nanos / 1_000_000_000.0)
 }
