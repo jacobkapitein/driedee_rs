@@ -5,7 +5,6 @@ use std::{collections::VecDeque, ffi::NulError};
 use sdl2::{
     keyboard::Keycode,
     pixels::{Color, PixelFormatEnum},
-    rect::FPoint,
     render::Canvas,
     video::Window,
     Sdl,
@@ -365,43 +364,62 @@ impl Engine {
     }
 
     pub fn draw_wireframe(&mut self, triangle: &Triangle) {
-        self.canvas.set_draw_color(Color::RGB(255, 0, 0));
-        self.canvas
-            .draw_fline(
-                FPoint::new(
-                    self.size_x as f32 - triangle.vectors[0].x,
-                    self.size_y as f32 - triangle.vectors[0].y,
-                ),
-                FPoint::new(
-                    self.size_x as f32 - triangle.vectors[1].x,
-                    self.size_y as f32 - triangle.vectors[1].y,
-                ),
-            )
-            .expect("Error drawing line");
-        self.canvas
-            .draw_fline(
-                FPoint::new(
-                    self.size_x as f32 - triangle.vectors[1].x,
-                    self.size_y as f32 - triangle.vectors[1].y,
-                ),
-                FPoint::new(
-                    self.size_x as f32 - triangle.vectors[2].x,
-                    self.size_y as f32 - triangle.vectors[2].y,
-                ),
-            )
-            .expect("Error drawing line");
-        self.canvas
-            .draw_fline(
-                FPoint::new(
-                    self.size_x as f32 - triangle.vectors[2].x,
-                    self.size_y as f32 - triangle.vectors[2].y,
-                ),
-                FPoint::new(
-                    self.size_x as f32 - triangle.vectors[0].x,
-                    self.size_y as f32 - triangle.vectors[0].y,
-                ),
-            )
-            .expect("Error drawing line");
+        let color = Color::RGB(255, 0, 0); // Red wireframe
+        
+        // Draw the three edges of the triangle
+        self.draw_line_to_buffer(
+            triangle.vectors[0].x, triangle.vectors[0].y,
+            triangle.vectors[1].x, triangle.vectors[1].y,
+            color
+        );
+        self.draw_line_to_buffer(
+            triangle.vectors[1].x, triangle.vectors[1].y,
+            triangle.vectors[2].x, triangle.vectors[2].y,
+            color
+        );
+        self.draw_line_to_buffer(
+            triangle.vectors[2].x, triangle.vectors[2].y,
+            triangle.vectors[0].x, triangle.vectors[0].y,
+            color
+        );
+    }
+
+    fn draw_line_to_buffer(&mut self, x0: f32, y0: f32, x1: f32, y1: f32, color: Color) {
+        // Bresenham's line algorithm for drawing lines to pixel buffer
+        let mut x0 = (self.size_x as f32 - x0) as i32;
+        let mut y0 = (self.size_y as f32 - y0) as i32;
+        let x1 = (self.size_x as f32 - x1) as i32;
+        let y1 = (self.size_y as f32 - y1) as i32;
+
+        let dx = (x1 - x0).abs();
+        let dy = -(y1 - y0).abs();
+        let sx = if x0 < x1 { 1 } else { -1 };
+        let sy = if y0 < y1 { 1 } else { -1 };
+        let mut err = dx + dy;
+
+        loop {
+            // Draw pixel at (x0, y0)
+            if x0 >= 0 && x0 < self.size_x as i32 && y0 >= 0 && y0 < self.size_y as i32 {
+                let pixel_index = (y0 as usize * self.size_x as usize + x0 as usize) * 3;
+                if pixel_index + 2 < self.pixel_buffer.len() {
+                    self.pixel_buffer[pixel_index] = color.r;
+                    self.pixel_buffer[pixel_index + 1] = color.g;
+                    self.pixel_buffer[pixel_index + 2] = color.b;
+                }
+            }
+
+            if x0 == x1 && y0 == y1 { break; }
+
+            let e2 = 2 * err;
+            if e2 >= dy {
+                err += dy;
+                x0 += sx;
+            }
+            if e2 <= dx {
+                err += dx;
+                y0 += sy;
+            }
+        }
     }
 
     pub fn move_camera(&mut self, key: Keycode, elapsed_time: f32) {
