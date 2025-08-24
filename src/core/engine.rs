@@ -4,8 +4,8 @@ use std::{collections::VecDeque, ffi::NulError};
 
 use sdl2::{
     keyboard::Keycode,
-    pixels::Color,
-    rect::{FPoint, Point},
+    pixels::{Color, PixelFormatEnum},
+    rect::FPoint,
     render::Canvas,
     video::Window,
     Sdl,
@@ -22,6 +22,8 @@ use super::{
 pub struct Engine {
     pub sdl_context: Sdl,
     canvas: Canvas<Window>,
+    pixel_buffer: Vec<u8>,
+    z_buffer: Vec<f32>,
     size_x: u32,
     size_y: u32,
     projection_matrix: Matrix4X4,
@@ -59,9 +61,16 @@ impl Engine {
         let projection_matrix =
             Matrix4X4::from_projection(fov, aspect_ratio, near_plane, far_plane);
 
+        // Create pixel and z buffers
+        let buffer_size = (size_x * size_y) as usize;
+        let pixel_buffer = vec![0u8; buffer_size * 3]; // RGB format: 3 bytes per pixel
+        let z_buffer = vec![f32::INFINITY; buffer_size]; // Initialize with far values
+
         Engine {
             sdl_context,
             canvas,
+            pixel_buffer,
+            z_buffer,
             size_x,
             size_y,
             projection_matrix,
@@ -74,9 +83,10 @@ impl Engine {
     }
 
     pub fn on_user_update(&mut self) -> bool {
-        self.canvas.set_draw_color(Color::RGB(0, 0, 0));
-        self.canvas.clear();
-        self.canvas.set_draw_color(Color::RGB(255, 255, 255));
+        // Clear pixel buffer (set to black)
+        self.pixel_buffer.fill(0);
+        // Reset z-buffer
+        self.z_buffer.fill(f32::INFINITY);
 
         let translation_matrix = Matrix4X4::from_translation(0.0, 0.0, 4.0);
 
@@ -229,13 +239,13 @@ impl Engine {
 
             // Draw all remaining triangles in the queue
             for final_triangle in triangle_queue {
-                self.draw_filled_triangle(&final_triangle);
+                self.draw_filled_triangle_to_buffer(&final_triangle);
                 // self.draw_wireframe(&final_triangle);
             }
         }
 
-        // Finally, show the buffer
-        self.canvas.present();
+        // Create texture and render the pixel buffer to screen
+        self.render_buffer_to_screen();
 
         true
     }
@@ -252,7 +262,7 @@ impl Engine {
         Color::RGB(new_r, new_g, new_b)
     }
 
-    pub fn draw_filled_triangle(&mut self, projected_triangle: &Triangle) {
+    pub fn draw_filled_triangle_to_buffer(&mut self, projected_triangle: &Triangle) {
         // Order projected points from top to bottom by their `y` value
         let mut ordered_points = projected_triangle.vectors.clone();
         ordered_points.sort_by(|a, b| a.y.partial_cmp(&b.y).unwrap());
@@ -285,8 +295,8 @@ impl Engine {
             x_right = x02;
         }
 
-        // Draw the triangle
-        self.canvas.set_draw_color(projected_triangle.base_color);
+        // Get color components
+        let color = projected_triangle.base_color;
 
         // Ensure we stay within bounds of the interpolation arrays
         let start_y = p0.y as i32;
@@ -300,12 +310,58 @@ impl Engine {
                 let x_end = x_right[index] as i32;
 
                 for x in x_start..x_end {
-                    self.canvas
-                        .draw_point(Point::new(self.size_x as i32 - x, self.size_y as i32 - y))
-                        .expect("Error drawing pixel");
+                    let screen_x = (self.size_x as i32 - x) as usize;
+                    let screen_y = (self.size_y as i32 - y) as usize;
+
+                    // Bounds checking
+                    if screen_x < self.size_x as usize && screen_y < self.size_y as usize {
+                        let pixel_index = (screen_y * self.size_x as usize + screen_x) * 3;
+                        
+                        // Write RGB values directly to buffer
+                        if pixel_index + 2 < self.pixel_buffer.len() {
+                            self.pixel_buffer[pixel_index] = color.r;     // Red
+                            self.pixel_buffer[pixel_index + 1] = color.g; // Green
+                            self.pixel_buffer[pixel_index + 2] = color.b; // Blue
+                        }
+                    }
                 }
             }
         }
+    }
+
+    fn render_buffer_to_screen(&mut self) {
+        // Create texture creator
+        let texture_creator = self.canvas.texture_creator();
+        
+        // Create a streaming texture
+        let mut texture = texture_creator
+            .create_texture_streaming(PixelFormatEnum::RGB24, self.size_x, self.size_y)
+            .expect("Failed to create texture");
+
+        // Update texture with pixel buffer data
+        texture
+            .with_lock(None, |buffer: &mut [u8], pitch: usize| {
+                for y in 0..self.size_y as usize {
+                    let src_offset = y * self.size_x as usize * 3;
+                    let dst_offset = y * pitch;
+                    let row_size = self.size_x as usize * 3;
+                    
+                    if src_offset + row_size <= self.pixel_buffer.len() 
+                        && dst_offset + row_size <= buffer.len() {
+                        buffer[dst_offset..dst_offset + row_size]
+                            .copy_from_slice(&self.pixel_buffer[src_offset..src_offset + row_size]);
+                    }
+                }
+            })
+            .expect("Failed to update texture");
+
+        // Render texture to canvas
+        self.canvas
+            .copy(&texture, None, None)
+            .expect("Failed to copy texture to canvas");
+
+        // Present the final result
+        self.canvas.present();
     }
 
     pub fn draw_wireframe(&mut self, triangle: &Triangle) {
@@ -398,6 +454,11 @@ impl Engine {
     pub fn resize_window(&mut self, new_x: i32, new_y: i32) {
         self.size_x = new_x as u32;
         self.size_y = new_y as u32;
+        
+        // Resize buffers to match new window size
+        let buffer_size = (self.size_x * self.size_y) as usize;
+        self.pixel_buffer.resize(buffer_size * 3, 0);
+        self.z_buffer.resize(buffer_size, f32::INFINITY);
     }
 
     pub fn set_title(&mut self, new_title: String) -> Result<(), NulError> {
